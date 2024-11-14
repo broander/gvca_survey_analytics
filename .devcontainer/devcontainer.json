@@ -6,9 +6,9 @@
     },
     // features repo which has help and options for each feature: https://github.com/devcontainers/features
     "features": {
-        //     "ghcr.io/devcontainers/features/desktop-lite": {
-        //         "version": "latest"
-        //     },
+            "ghcr.io/devcontainers/features/desktop-lite": {
+                "version": "latest"
+            },
         //     "ghcr.io/devcontainers/features/common-utils:2": {
         //         "username": "codespace",
         //         "userUid": "1000",
@@ -111,6 +111,7 @@
         //     "ghcr.io/devcontainers/features/git-lfs",
         //     "ghcr.io/devcontainers/features/github-cli",
         //     "ghcr.io/devcontainers/features/docker-in-docker",
+        //     "ghcr.io/devcontainers/features/desktop-lite",
         //     "ghcr.io/devcontainers/features/kubectl-helm-minikube",
         //     "ghcr.io/devcontainers/features/go",
         //     "./local-features/jekyll",
