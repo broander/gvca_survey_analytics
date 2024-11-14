@@ -25,9 +25,9 @@
         },
         "ghcr.io/devcontainers/features/node:1": {
             "version": "20",
-            //"additionalVersions": "18"
+            "additionalVersions": "18"
         },
-        "./local-features/nvs": "latest",
+        //"./local-features/nvs": "latest", //seems to be broken...
         "ghcr.io/devcontainers/features/python:1": {
             "version": "3.12.1",
             "additionalVersions": "3.11.9",
