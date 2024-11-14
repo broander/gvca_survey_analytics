@@ -15,7 +15,6 @@ RUN mamba update -n base -c conda-forge -y mamba
 RUN mamba update -n base -c conda-forge -y --all
 USER root
 
-RUN pwd && ls
 # install devcontainer python dependencies for environment
 COPY .devcontainer/environment.yml* .devcontainer/noop.txt /tmp/conda-tmp/
 RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/mamba env update -n base -f /tmp/conda-tmp/environment.yml; fi \
