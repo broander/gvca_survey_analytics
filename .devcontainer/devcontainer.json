@@ -45,6 +45,7 @@
         //         //    "yapf"
         //         //]
         //     },
+        //     "ghcr.io/rocker-org/devcontainer-features/miniforge:2": {},
         //     "./local-features/machine-learning-packages": "latest",
         //     "ghcr.io/devcontainers/features/php:1": {
         //         "version": "8.3.0",
@@ -105,6 +106,7 @@
         //     "ghcr.io/devcontainers/features/python",
         //     "./local-features/patch-python",
         //     "./local-features/machine-learning-packages",
+        //     "ghcr.io/rocker-org/devcontainer-features/miniforge:2",
         //     "ghcr.io/devcontainers/features/php",
         //     "ghcr.io/devcontainers/features/ruby",
         //     "ghcr.io/devcontainers/features/java",
@@ -119,7 +121,6 @@
         //     "ghcr.io/devcontainers/features/oryx",
         //     "./local-features/setup-user"
         // ],
-        "remoteUser": "codespace",
         "containerUser": "codespace",
         // Use 'forwardPorts' to make a list of ports inside the container available locally.
         "forwardPorts": [
