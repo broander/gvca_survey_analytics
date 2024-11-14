@@ -1,0 +1,22 @@
+name: project
+channels:
+  - conda-forge
+  - default
+dependencies:
+  - pandas
+  - numpy
+  - matplotlib
+  - wordcloud
+  - python-dotenv
+  - psycopg2-binary
+  - sqlalchemy
+  - openai
+  # - seaborn
+  # - plotly
+  # - altair
+  # - vega_datasets
+  # - scipy
+  # - scikit-learn
+  # - jupyterlab
+  # - jupyter
+  # - beautifulsoup4
