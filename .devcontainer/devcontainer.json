@@ -140,27 +140,27 @@
                 "go.useLanguageServer": true,
                 "go.gopath": "/go",
                 "python.defaultInterpreterPath": "/opt/conda/bin/python",
-                "jupyter.kernels.filter": [
-                    {
-                        "path": "/opt/conda/bin/python",
-                        "type": "pythonEnvironment"
-                    },
-                    {
-                        "path": "/usr/local/python/current/bin/python3",
-                        "type": "pythonEnvironment"
-                    },
-                    {
-                        "path": "/usr/local/python/current/bin/python",
-                        "type": "pythonEnvironment"
-                    },
-                    {
-                        "path": "/usr/bin/python3",
-                        "type": "pythonEnvironment"
-                    },
-                    {
-                        "path": "/bin/python3",
-                        "type": "pythonEnvironment"
-                    }
+                // "jupyter.kernels.filter": [
+                //     {
+                //         "path": "/opt/conda/bin/python",
+                //         "type": "pythonEnvironment"
+                //     },
+                //     {
+                //         "path": "/usr/local/python/current/bin/python3",
+                //         "type": "pythonEnvironment"
+                //     },
+                //     {
+                //         "path": "/usr/local/python/current/bin/python",
+                //         "type": "pythonEnvironment"
+                //     },
+                //     {
+                //         "path": "/usr/bin/python3",
+                //         "type": "pythonEnvironment"
+                //     },
+                //     {
+                //         "path": "/bin/python3",
+                //         "type": "pythonEnvironment"
+                //     }
                 ],
                 "lldb.executable": "/usr/bin/lldb",
                 "python.linting.enabled": true,
