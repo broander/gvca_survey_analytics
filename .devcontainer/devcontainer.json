@@ -126,8 +126,8 @@
     //     "ghcr.io/devcontainers/features/oryx",
     //     "./local-features/setup-user"
     // ],
-    "remoteUser": "codespace",
-    "containerUser": "codespace",
+    "remoteUser": "vscode",
+    "containerUser": "vscode",
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
         6080, // port for accessing fluxbox desktop
