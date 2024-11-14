@@ -6,9 +6,10 @@
     },
     // features repo which has help and options for each feature: https://github.com/devcontainers/features
     "features": {
-            "ghcr.io/devcontainers/features/desktop-lite": {
-                "version": "latest"
-            },
+        "ghcr.io/devcontainers/features/desktop-lite": {
+            "version": "latest"
+        },
+        "ghcr.io/nils-geistmann/devcontainers-features/create-remote-user:0": {},
         //     "ghcr.io/devcontainers/features/common-utils:2": {
         //         "username": "codespace",
         //         "userUid": "1000",
@@ -208,3 +209,4 @@
             }
         }
     }
+}
