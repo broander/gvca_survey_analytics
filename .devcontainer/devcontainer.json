@@ -1,5 +1,8 @@
 {
+// devcontainer json reference: https://containers.dev/implementors/json_reference/
+    
     // universal image here: https://github.com/devcontainers/images/tree/main/src/universal/.devcontainer
+    // github codespaces don't charge for storage for image assets based on the universal image
     "build": {
         "dockerfile": "./Dockerfile",
         "context": "."
