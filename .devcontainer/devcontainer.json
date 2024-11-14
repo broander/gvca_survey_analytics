@@ -46,7 +46,7 @@
                     "yapf",
                     "ipython",
                     "ipdb",
-                    "ipykernel",
+                    //"ipykernel",
                     "mypy",
                     "mock",
                     "pytest",
