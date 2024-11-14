@@ -9,22 +9,22 @@ FROM 	mcr.microsoft.com/devcontainers/universal:linux
 #     && rm -rf /tmp/conda-tmp
 
 # Install mamba if not installed, as faster for managing a lot of python packages
-USER codespace
-RUN /opt/conda/bin/conda install -n base -c conda-forge -y mamba
-RUN mamba update -n base -c conda-forge -y mamba
-RUN mamba update -n base -c conda-forge -y --all
-USER root
+#USER codespace
+#RUN /opt/conda/bin/conda install -n base -c conda-forge -y mamba
+#RUN mamba update -n base -c conda-forge -y mamba
+#RUN mamba update -n base -c conda-forge -y --all
+#USER root
 
 # install devcontainer python dependencies for environment
-COPY .devcontainer/environment.yml* .devcontainer/noop.txt /tmp/conda-tmp/
-RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/mamba env update -n base -f /tmp/conda-tmp/environment.yml; fi \
-    && rm -rf /tmp/conda-tmp
+#COPY .devcontainer/environment.yml* .devcontainer/noop.txt /tmp/conda-tmp/
+#RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/mamba env update -n base -f /tmp/conda-tmp/environment.yml; fi \
+#    && rm -rf /tmp/conda-tmp
 
 # install project dependencies defined in an environment.yml in the root git directory / workspace root
 # assumes environment.yml file exists in workspace root;
-COPY environment.yml* .devcontainer/noop.txt /tmp/conda-tmp/
-RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/mamba create --name project --clone base && /opt/conda/bin/mamba env update -n project -f /tmp/conda-tmp/environment.yml; fi \
-    && rm -rf /tmp/conda-tmp
+#COPY environment.yml* .devcontainer/noop.txt /tmp/conda-tmp/
+#RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/mamba create --name project --clone base && /opt/conda/bin/mamba env update -n project -f /tmp/conda-tmp/environment.yml; fi \
+#    && rm -rf /tmp/conda-tmp
 
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
