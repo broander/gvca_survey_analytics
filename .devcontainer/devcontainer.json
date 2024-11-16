@@ -50,7 +50,7 @@
         //        "pytest",
         //    ],
         //},
-        "ghcr.io/rocker-org/devcontainer-features/miniforge:2": {},
+        //     "ghcr.io/rocker-org/devcontainer-features/miniforge:2": {},
         //     "./local-features/machine-learning-packages": "latest",
         //     "ghcr.io/devcontainers/features/php:1": {
         //         "version": "8.3.0",
@@ -127,7 +127,7 @@
     //     "./local-features/setup-user"
     // ],
     // "remoteUser": "codespace",
-    //"containerUser": "codespace",
+    // "containerUser": "codespace",
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
         6080, // port for accessing fluxbox desktop
@@ -140,16 +140,16 @@
     // Configure tool-specific properties.
     "customizations": {
         // Configure properties specific to Codespaces.
-        "codespaces": {
-            "disableAutomaticConfiguration": true
+        // "codespaces": {
+        //    "disableAutomaticConfiguration": true
         },
         // Configure properties specific to VS Code.
         "vscode": {
             // Set *default* container specific settings.json values on container create.
             "settings": {
-                "go.toolsManagement.checkForUpdates": "local",
-                "go.useLanguageServer": true,
-                "go.gopath": "/go",
+                // "go.toolsManagement.checkForUpdates": "local",
+                // "go.useLanguageServer": true,
+                // "go.gopath": "/go",
                 "python.defaultInterpreterPath": "/opt/conda/bin/python",
                 // "jupyter.kernels.filter": [
                 //     {
@@ -174,16 +174,6 @@
                 //     }
                 // ],
                 "lldb.executable": "/usr/bin/lldb",
-                "python.linting.enabled": true,
-                "python.linting.pylintEnabled": true,
-                "python.formatting.autopep8Path": "/opt/conda/bin/autopep8",
-                "python.formatting.yapfPath": "/opt/conda/bin/yapf",
-                "python.formatting.blackPath": "/opt/conda/bin/black",
-                "python.linting.flake8Path": "/opt/conda/bin/flake8",
-                "python.linting.pycodestylePath": "/opt/conda/bin/pycodestyle",
-                "python.linting.pydocstylePath": "/opt/conda/bin/pydocstyle",
-                "python.linting.pylintPath": "/opt/conda/bin/pylint",
-                "python.formatting.provider": "black",
                 "editor.formatOnSave": true,
                 "python.formatting.blackArgs": [
                     "--line-length",
@@ -213,13 +203,30 @@
             // Add the IDs of extensions you want installed when the container is created.
             "extensions": [
                 "GitHub.vscode-pull-request-github",
-                "ms-python.python",
-                "ms-python.vscode-pylance",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.pylint",
+				"ms-python.flake8",
+				"ms-python.mypy-type-checker",
+				"ms-python.black-formatter",
+				"ms-python.autopep8",
+				"ms-python.black-formatter",
+				"ms-python.isort",
+				"eeyore.yapf",
                 "jaydenlin.ctags-support",
                 "donjayamanne.git-extension-pack",
                 "donjayamanne.githistory",
                 "redhat.vscode-xml",
                 "redhat.vscode-yaml",
+                "ms-vscode.remote-repositories",
+                "ms-mssql.sql-bindings-vscode",
+				"ms-mssql.sql-database-projects-vscode",
+                "ms-mssql.mssql",
+                "foxundermoon.shell-format",
+                "shakram02.bash-beautify",
+				"timonwong.shellcheck",
+                "ZainChen.json",
+                "VisualStudioExptTeam.vscodeintellicode",
             ]
         }
     }
