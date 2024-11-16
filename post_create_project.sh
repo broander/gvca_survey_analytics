@@ -10,7 +10,7 @@ shopt -s expand_aliases
 
 # create conda env called "project" and install requirements from environment.yml
 if [ -f './environment.yml' ]; then
-    umask 0002 && /opt/conda/bin/mamba create --name project --clone base -y && /opt/conda/bin/mamba env update -n project -f ./environment.yml -y
+    umask 0002 && /opt/conda/bin/mamba create --name project --clone base -y && /opt/conda/bin/mamba env update -n project -f ./environment.yml
 else
     umask 0002 && /opt/conda/bin/mamba create --name project --clone base -y
 fi
