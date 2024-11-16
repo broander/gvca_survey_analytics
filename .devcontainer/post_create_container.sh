@@ -16,7 +16,7 @@ mamba clean --all -y
 
 # Install container requirements from environment.yml
 if [ -f './.devcontainer/environment.yml' ]; then
-    umask 0002 && /opt/conda/bin/mamba env update -n base -f ./.devcontainer/environment.yml
+    umask 0002 && mamba env update -n base -f ./.devcontainer/environment.yml
 fi
 
 # [Optional] Uncomment this section to install additional OS packages.

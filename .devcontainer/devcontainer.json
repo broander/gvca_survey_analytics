@@ -66,6 +66,7 @@
         //         "version": "latest",
         //         "addCondaForge": "true"
         //     },
+        //     "ghcr.io/itsmechlark/features/postgresql:1" {},
         //     "ghcr.io/devcontainers/features/ruby:1": {
         //         "version": "3.3.4",
         //         "additionalVersions": "3.3.2"

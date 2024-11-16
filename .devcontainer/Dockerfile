@@ -12,6 +12,7 @@ FROM mcr.microsoft.com/devcontainers/universal:linux
 
 # Install mamba if not installed, as faster for managing a lot of python packages
 USER codespace
+RUN conda config --add channels conda-forge
 RUN /opt/conda/bin/conda install -n base -c conda-forge -y mamba
 RUN mamba update -n base -c conda-forge -y mamba
 RUN mamba clean -all -y
@@ -28,6 +29,6 @@ USER root
 #    && rm -rf /tmp/conda-tmp
 
 # [Optional] Uncomment this section to install additional OS packages.
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && \
-  apt-get -y install --no-install-recommends postgresql && \
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive &&
+  apt-get -y install --no-install-recommends postgresql &&
   apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
