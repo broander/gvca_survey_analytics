@@ -126,17 +126,29 @@
     //     "ghcr.io/devcontainers/features/oryx",
     //     "./local-features/setup-user"
     // ],
+
     // "remoteUser": "codespace",
     // "containerUser": "codespace",
+
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
         6080, // port for accessing fluxbox desktop
         8888, // port for accessing jupyter server
     ],
+
+	// Use 'portsAttributes' to set default properties for specific forwarded ports. 
+	// More info: https://containers.dev/implementors/json_reference/#port-attributes
+	// "portsAttributes": {
+	// 	"9000": {
+	//		"label": "Hello Remote World",
+	//		"onAutoForward": "notify"
+	//	}
+	// },
+	    
     // Use 'postCreateCommand' to run commands after the container is created.
     // "postCreateCommand": "chmod +x ./.devcontainer/developer_tools.sh && bash -i ./.devcontainer/developer_tools.sh",
     // create python env called project, cloned from base, and then install environment.yml specs in repo root directory (not .devcontainer)
-    //"postCreateCommand": "if [ -f './environment.yml' ]; then umask 0002 && /opt/conda/bin/mamba create --name project --clone base && /opt/conda/bin/mamba env update -n project -f ./environment.yml; else umask 0002 && /opt/conda/bin/mamba create --name project --clone base; fi",
+    "postCreateCommand": "if [ -f './environment.yml' ]; then umask 0002 && /opt/conda/bin/mamba create --name project --clone base && /opt/conda/bin/mamba env update -n project -f ./environment.yml; else umask 0002 && /opt/conda/bin/mamba create --name project --clone base; fi",
     // Configure tool-specific properties.
     "customizations": {
         // Configure properties specific to Codespaces.
