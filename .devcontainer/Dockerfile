@@ -16,12 +16,12 @@ FROM 	mcr.microsoft.com/devcontainers/universal:linux
 #USER root
 
 # install devcontainer python dependencies for environment
-#COPY .devcontainer/environment.yml* .devcontainer/noop.txt /tmp/conda-tmp/
-#RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/mamba env update -n base -f /tmp/conda-tmp/environment.yml; fi \
-#    && rm -rf /tmp/conda-tmp
+COPY .devcontainer/environment.yml* .devcontainer/noop.txt /tmp/conda-tmp/
+RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/mamba env update -n base -f /tmp/conda-tmp/environment.yml; fi \
+    && rm -rf /tmp/conda-tmp
 
 # install project dependencies defined in an environment.yml in the root git directory / workspace root
-# assumes environment.yml file exists in workspace root;
+# assumes environment.yml file exists in workspace root;  probably best done as postcreatecommand in devcontainer.json instead
 #COPY environment.yml* .devcontainer/noop.txt /tmp/conda-tmp/
 #RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bin/mamba create --name project --clone base && /opt/conda/bin/mamba env update -n project -f /tmp/conda-tmp/environment.yml; fi \
 #    && rm -rf /tmp/conda-tmp
