@@ -14,7 +14,6 @@ FROM mcr.microsoft.com/devcontainers/universal:linux
 USER codespace
 RUN /opt/conda/bin/conda install -n base -c conda-forge -y mamba
 RUN mamba update -n base -c conda-forge -y mamba
-#RUN mamba update -n base -c conda-forge -y --all
 RUN mamba clean -all -y
 USER root
 

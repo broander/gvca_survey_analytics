@@ -11,7 +11,8 @@ shopt -s expand_aliases
 # Install Mamba - not working, probably because needs to run as user and not as root
 # conda init
 # /opt/conda/bin/conda install -n base -c conda-forge -y mamba
-# mamba clean --all -y
+mamba update -n base -c conda-forge -y --all
+mamba clean --all -y
 
 # Install container requirements from environment.yml
 if [ -f './.devcontainer/environment.yml' ]; then
