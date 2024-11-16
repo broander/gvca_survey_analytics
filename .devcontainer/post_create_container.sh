@@ -8,9 +8,14 @@ echo "Installing Container Requirements"
 # make aliases expand and work in the script
 shopt -s expand_aliases
 
-# create conda env called "project" and install requirements from environment.yml
+# Install Mamba - not working, probably because needs to run as user and not as root
+# conda init
+# /opt/conda/bin/conda install -n base -c conda-forge -y mamba
+# mamba clean --all -y
+
+# Install container requirements from environment.yml
 if [ -f './.devcontainer/environment.yml' ]; then
-    umask 0002 && /opt/conda/bin/mamba env update -n base -f ./.devcontainer/environment.yml
+    umask 0002 && /opt/conda/bin/mamba env update -n base -f ./.devcontainer/environment.yml -y
 fi
 
 # [Optional] Uncomment this section to install additional OS packages.
