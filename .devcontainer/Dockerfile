@@ -29,6 +29,6 @@ USER root
 #    && rm -rf /tmp/conda-tmp
 
 # [Optional] Uncomment this section to install additional OS packages.
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive &&
-  apt-get -y install --no-install-recommends postgresql &&
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && \
+  apt-get -y install --no-install-recommends postgresql && \
   apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
