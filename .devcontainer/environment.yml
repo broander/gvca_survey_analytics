@@ -21,6 +21,8 @@ dependencies:
   - yamllint
   - yq
   - shyaml
+  - sqlfluff
+  - shandy-sqlfmt
   # - flask
   # - xlsxwriter
   # - pandas
