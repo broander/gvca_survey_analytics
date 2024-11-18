@@ -9,11 +9,20 @@ echo "Installing Project Requirements"
 shopt -s expand_aliases
 
 # create conda env called "project" and install requirements from environment.yml
-if [ -f './environment.yml' ]; then
-    umask 0002 && mamba create --name project --clone base -y && mamba env update -n project -f ./environment.yml
-    mamba clean --all -y
+# Assumes Mamba already installed earlier in the build process
+if ! mamba --version; then
+    echo "Mamba not found when setting up project requirements, check config and rebuild container"
 else
-    umask 0002 && mamba create --name project --clone base -y
+    echo "Mamba found, continuing to setup project requirements..."
+    if [ -f './environment.yml' ]; then
+        echo "Project environment.yml found, installing project requirements in project env"
+        umask 0002 && mamba create --name project --clone base && mamba env update -n project -f ./environment.yml
+    else
+        echo "No project environment.yml found, creating project env from base"
+        umask 0002 && mamba create --name project --clone base
+    fi
+    mamba update -n project -y --all
+    mamba clean --all -y
 fi
 
 # [Optional] Uncomment this section to install additional OS packages.
