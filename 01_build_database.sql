@@ -1,6 +1,7 @@
-CREATE DATABASE gvca_survey OWNER "bdoremus";
-SET ROLE "bdoremus";
+--CREATE DATABASE gvca_survey OWNER "gvcaadmin";
+--SET ROLE "gvcaadmin";
 
+--TODO make this not require editing every year
 CREATE SCHEMA sac_survey_2024;
 SET SCHEMA 'sac_survey_2024';
 
