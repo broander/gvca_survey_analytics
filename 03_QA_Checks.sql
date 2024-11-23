@@ -1,3 +1,6 @@
+-- Set search path to the survey schema
+SET search_path to sac_survey_2024;
+
 -- Apply soft deletes to those who didn't fill out any non-mandatory information
 WITH responses_by_respondents AS
          (

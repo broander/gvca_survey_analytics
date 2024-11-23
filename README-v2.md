@@ -22,7 +22,7 @@ Simple script to parse Survey Monkey results into a local database and perform a
 	- Create a new database
 		- 'createdb --owner=mynonsuperuser gvca_survey'
 	- Create a new database from .sql file
-		- 'psql -d gvca_survey -U gvcaadmin -f gvca_survey.sql'
+		- 'psql -d gvca_survey -U gvcaadmin -f 01_build_database.sql'
 
 	- Connect to the server:
 		'psql gvca_survey -U gvcaadmin'
@@ -39,6 +39,10 @@ Simple script to parse Survey Monkey results into a local database and perform a
 4. Create a .env file in the root of this directory with the env vars required (see utilities.load_env_vars())
 5. Update the Python file with any changes to the survey.  This is harder than it seems, and probably harder than it needs to be.
 6. Execute the files in the order given; some on the database, some python scripts.
+	- 01: if not run above already: 'psql -d gvca_survey -U gvcaadmin -f 01_build_database.sql'
+	- 02: 'python 02_data_ingest.py'
+	- 03: 'psql -d gvca_survey -U gvcaadmin -f 03_QA_Checks.sql'
+	   - Schema name is hardcoded into this sql file right now
 7. Fix any problems in the scripts
 8. Commit your changes and push them back up to the remote git repository
 9. Create a release in Github for the current year, so we can rerun prior history if needed.

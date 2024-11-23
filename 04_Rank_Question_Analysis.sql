@@ -1,6 +1,10 @@
 /*
  Summary of ranked questions
  */
+
+-- Set search path to the survey schema
+SET search_path to sac_survey_2024;
+
 WITH question_totals AS
          (
              SELECT question_id,
