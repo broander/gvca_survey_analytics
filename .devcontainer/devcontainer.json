@@ -150,6 +150,7 @@
     // Use 'postCreateCommand' to run commands after the container is created.
     // "postCreateCommand": "chmod +x ./.devcontainer/developer_tools.sh && bash -i ./.devcontainer/developer_tools.sh",
     "postCreateCommand": "chmod +x ./.devcontainer/post_create_container.sh && bash -i ./.devcontainer/post_create_container.sh && chmod +x ./post_create_project.sh && bash -i ./post_create_project.sh",
+	"postStartCommand": "chmod +x ./post_container_start.sh && bash -i ./post_container_start.sh",
     // Configure tool-specific properties.
     "customizations": {
         // Configure properties specific to Codespaces.

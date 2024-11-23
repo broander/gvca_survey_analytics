@@ -13,9 +13,9 @@ Simple script to parse Survey Monkey results into a local database and perform a
 	- Assume have conda environment with conda-forge postgresql package installed
 	- Activate project environment
 	   - per this article: https://gist.github.com/gwangjinkim/f13bf596fefa7db7d31c22efd1627c7a
-	- Create a new database
+	- Create a new database; only necessary once to create db
 		- 'initdb -D gvca'
-	- Start the server
+	- Start the server; necessary every time container is restarted
 		- 'pg_ctl -D gvca -l logfile start'
 	- Create a new user
 		- 'createuser --encrypted --pwprompt gvcaadmin' --provide username dbadmin and pword
@@ -24,12 +24,17 @@ Simple script to parse Survey Monkey results into a local database and perform a
 	- Create a new database from .sql file
 		- 'psql -d gvca_survey -U gvcaadmin -f gvca_survey.sql'
 
+	- Connect to the server:
+		'psql gvca_survey -U gvcaadmin'
 	- Convenient psql commands:
+		  'SET search_path TO <schema_name>;' - Set the schema to use
+		  'SHOW search_path;' - Show the current schema
 		  \l - Display database
 		  \c - Connect to database
 		  \dn - List schemas
 		  \dt - List tables inside public schemas
 		  \dt schema1.* - List tables inside a particular schema
+		  \q - Quit
 
 4. Create a .env file in the root of this directory with the env vars required (see utilities.load_env_vars())
 5. Update the Python file with any changes to the survey.  This is harder than it seems, and probably harder than it needs to be.
