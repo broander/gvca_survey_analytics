@@ -22,7 +22,7 @@ OPENAI_CLIENT = OpenAI()
 # OPENAI_MODEL_NAME = "gpt-4o-mini"   # like gpt-3.5-turbo but faster and
 OPENAI_MODEL_NAME = "o1-preview"  # most advanced, better at complex tasks
 OPENAI_PROMPT_CONTEXT = "You are a helpful assistant."
-OPENAI_MSG_STREAM = False  # not working yet so leave False
+OPENAI_MSG_STREAM = True  # not working yet so leave False
 
 
 def create_new_openai_client():
@@ -69,8 +69,8 @@ def hello_gpt_assistant(
     OpenAI Chatbot.  See API Reference here:
     https://platform.openai.com/docs/api-reference/chat/create
 
-    Input text string prompt and returns a completion object with the message
-    content
+    Input text string prompt and returns a tuple of the role, content, and
+    token usage
     """
     # define the messages list based on the model name, as o1 doesn't support
     # the system prompt
@@ -98,22 +98,51 @@ def hello_gpt_assistant(
     # call the OpenAI API to get the completion using the provided client
     # session
 
-    completion = client.chat.completions.create(
+    response = client.chat.completions.create(
         model=model_name,
         messages=messages,
         stream=stream,
         stream_options=stream_options,
     )
+
+    role = ""
+    message_content = ""
+    usage = None
     # breakpoint()
 
-    # streaming isn't working because response doesn't have the same structure
+    # if stream is True, process and save stream data and print stream content
     if stream is True:
-        for chunk in completion:
-            print(chunk.choices[0].delta.content, end="")
+        print("\n")
+        for chunk in response:
+            try:
+                if chunk.choices[0].delta.content is not None:
+                    delta = chunk.choices[0].delta.content
+                    content = delta
+                    print(content, end="", flush=True)
+                    message_content += content
+            except:
+                pass
+            finally:
+                try:
+                    if chunk.choices[0].delta.role is not None:
+                        role = chunk.choices[0].delta.role
+                except:
+                    pass
+            try:
+                if chunk.usage is not None:
+                    usage = chunk.usage
+            except:
+                pass
             # breakpoint()
+        print("\n")
+    elif stream is False:
+        role = response.choices[0].message.role
+        message_content = response.choices[0].message.content
+        usage = response.usage
+        print("\n" + message_content + "\n")
+        # breakpoint()
     # breakpoint()
-
-    return completion
+    return role, message_content, usage
 
 
 def save_file(message_history):
@@ -123,7 +152,7 @@ def save_file(message_history):
     file_name = input("Enter a file name: ")
     with open(file_name + ".json", "w") as f:
         # f.write(str(response_message.content))
-        breakpoint()
+        # breakpoint()
         json_object = json.dumps(message_history, indent=4)
         f.write(json_object)
 
@@ -160,20 +189,24 @@ def chat_prompt():
             # increment the prompt count
             prompt_count += 1
             # call the assistant function
-            response = hello_gpt_assistant(prompt)
+            # response = hello_gpt_assistant(prompt)
+            role, content, usage = hello_gpt_assistant(prompt)
             # get the number of tokens used
-            tokens_used = response.usage.total_tokens
+            # tokens_used = response.usage.total_tokens
+            tokens_used = usage.total_tokens
             # add the prompt to the message history
             user_prompt = {"role": "user", "content": prompt}
             message_history.append(user_prompt)
             # append the response to the message history
+            # response_message = {
+            #     "role": response.choices[0].message.role,
+            #     "content": response.choices[0].message.content,
+            # }
             response_message = {
-                "role": response.choices[0].message.role,
-                "content": response.choices[0].message.content,
+                "role": role,
+                "content": content,
             }
             message_history.append(response_message)
-            # print the response for the user
-            print("\n" + response.choices[0].message.content + "\n")
             # breakpoint()
 
         # subsequent prompt messages after first one
