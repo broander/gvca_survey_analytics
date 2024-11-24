@@ -42,7 +42,9 @@ Simple script to parse Survey Monkey results into a local database and perform a
 	- 01: if not run above already: 'psql -d gvca_survey -U gvcaadmin -f 01_build_database.sql'
 	- 02: 'python 02_data_ingest.py'
 	- 03: 'psql -d gvca_survey -U gvcaadmin -f 03_QA_Checks.sql'
-	   - Schema name is hardcoded into this sql file right now
+	   - TODO: Schema name is hardcoded into this sql file right now
+	- 04: 'psql -d gvca_survey -U gvcaadmin -f 04_Rank_Question_Analysis.sql'
+	   - TODO: Schema name is hardcoded into this sql file right now
 7. Fix any problems in the scripts
 8. Commit your changes and push them back up to the remote git repository
 9. Create a release in Github for the current year, so we can rerun prior history if needed.
