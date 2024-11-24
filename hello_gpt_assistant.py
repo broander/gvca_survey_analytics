@@ -12,8 +12,15 @@ from pprint import pprint
 
 import openai
 
+client = OpenAI()
 
-def hello_gpt_assistant(prompt, message_history=None):
+
+
+def hello_gpt_assistant():
+    pass
+
+
+def OLD_hello_gpt_assistant(prompt, message_history=None):
     """
     OpenAI Chatbot that will rememeber prior messages up to the token limit
     Meant to be imbedded in a shell function for use on the command line.
