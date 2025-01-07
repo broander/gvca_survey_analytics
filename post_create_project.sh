@@ -25,6 +25,15 @@ else
     mamba clean --all -y
 fi
 
+# Setup Postgres Database
+# conda activate project || "Error activating project environment" & exit 1
+# initdb -D gvca
+# pg_ctl -D gvca -l logfile start
+# createuser --encrypted --pwprompt gvcaadmin
+# createdb --owner=mynonsuperuser gvca_survey
+# psql -d gvca_survey -U gvcaadmin -f 01_build_database.sql
+
+
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #   && apt-get -y install --no-install-recommends <your packages here> \
