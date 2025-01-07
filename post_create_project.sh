@@ -26,13 +26,8 @@ else
 fi
 
 # Setup Postgres Database
-# conda activate project || "Error activating project environment" & exit 1
-# initdb -D gvca
-# pg_ctl -D gvca -l logfile start
-# createuser --encrypted --pwprompt gvcaadmin
-# createdb --owner=mynonsuperuser gvca_survey
-# psql -d gvca_survey -U gvcaadmin -f 01_build_database.sql
-
+echo "Running Database Setup Script"
+chmod +x ./00_setup_database.sh && bash -i ./00_setup_database.sh || echo "Database setup script failed"
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
