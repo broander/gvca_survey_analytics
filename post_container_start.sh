@@ -13,5 +13,7 @@ echo "Running postStartCommand script: post_container_start.sh"
 # Start required features
 #
 # Start the PostgreSQL server
-conda activate project
-pg_ctl -D gvca -l logfile start
+
+# some of these probably fail when container is first built
+conda activate project || "project env activation failed"
+pg_ctl -D gvca -l logfile start || echo "pg_ctl -D gvca -l logfile start failed"
