@@ -16,10 +16,10 @@ else
     echo "Mamba found, continuing to setup project requirements..."
     if [ -f './environment.yml' ]; then
         echo "Project environment.yml found, installing project requirements in project env"
-        umask 0002 && mamba create --name project --clone base && mamba env update -n project -f ./environment.yml
+        umask 0002 && conda create --name project --clone base && mamba env update -n project -f ./environment.yml
     else
         echo "No project environment.yml found, creating project env from base"
-        umask 0002 && mamba create --name project --clone base
+        umask 0002 && conda create --name project --clone base
     fi
     mamba update -n project -y --all
     mamba clean --all -y
