@@ -22,7 +22,7 @@ OPENAI_CLIENT = OpenAI()
 # OPENAI_MODEL_NAME = "gpt-4o-mini"   # like gpt-3.5-turbo but faster and
 OPENAI_MODEL_NAME = "o1-preview"  # most advanced, better at complex tasks
 OPENAI_PROMPT_CONTEXT = "You are a helpful assistant."
-OPENAI_MSG_STREAM = True
+OPENAI_MSG_STREAM = True  # not working yet so leave False
 
 
 def create_new_openai_client():
