@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ### setup database for project
+# will run automatically when container is first built via devcontainer.json
 
 echo "Setting up database for project"
 

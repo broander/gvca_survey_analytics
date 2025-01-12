@@ -12,8 +12,6 @@ dependencies:
   - sqlalchemy
   - postgresql
   - openai
-  - sqlfluff
-  - shandy-sqlfmt
   # - seaborn
   # - plotly
   # - altair

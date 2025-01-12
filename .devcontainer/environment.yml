@@ -38,3 +38,5 @@ dependencies:
   # - jupyter
   # - beautifulsoup4
   # - openai
+  # temporarily pin sqlite 3.46 so sqlite and ipython work
+  - libsqlite=3.46

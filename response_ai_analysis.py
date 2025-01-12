@@ -10,19 +10,48 @@
 
 import datetime
 import json
+import os
 from pprint import pprint
 
 from openai import OpenAI
+from sqlalchemy import create_engine, text
 
-# initialize the OpenAI API client
-OPENAI_CLIENT = OpenAI()
+try:
+    from .utilities import load_env_vars
+except:
+    from utilities import load_env_vars
 
 # see models here: https://platform.openai.com/docs/models
 # OPENAI_MODEL_NAME = "gpt-4o"  # standard flagship model
 # OPENAI_MODEL_NAME = "gpt-4o-mini"   # like gpt-3.5-turbo but faster and
 OPENAI_MODEL_NAME = "o1-preview"  # most advanced, better at complex tasks
-OPENAI_PROMPT_CONTEXT = "You are a helpful assistant."
-OPENAI_MSG_STREAM = True  # not working yet so leave False
+
+# prompt engineering best practices:
+# https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-the-openai-api
+# prompt context for the open response analysis task
+OPENAI_PROMPT_CONTEXT = """
+    You are a skilled analyst with experience in survey and sentiment analysis.
+    You have been asked to analyze the responses to an annual survey of parents
+    of the students at a classical education focused charter school named Golden
+    View Classical Academy.  The survey was conducted to gather feedback from
+    the parents on the school's performance and to identify areas for focus by
+    the school accountability committee to be shared with the school board and
+    administration.  The survey responses you are getting are from the open
+    response questions on the survey.  Your task is to analyze the responses and
+    provide a summary of the key themes and areas of focus.  You should produce
+    first a written summary of the key themes and areas of focus, and then
+    second a list of 10-20 bullet point category names that capture the main
+    themes shared in the open responses.
+    """
+
+OPENAI_MSG_STREAM = False
+OPENAI_CLIENT = OpenAI()
+
+# load environment variables from .env file
+INPUT_FILEPATH, DATABASE_SCHEMA, DATABASE_CONNECTION_STRING = load_env_vars()
+
+# database query to get the open response data
+DATABASE_QUERY = "SELECT response FROM responses;"
 
 
 def create_new_openai_client():
@@ -31,6 +60,7 @@ def create_new_openai_client():
     """
     global OPENAI_CLIENT
     OPENAI_CLIENT = OpenAI()
+    OPENAI_CLIENT.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def set_openai_model_name(model_name="gpt-4o"):
@@ -57,7 +87,7 @@ def set_msg_stream(stream=OPENAI_MSG_STREAM):
     OPENAI_MSG_STREAM = stream
 
 
-def hello_gpt_assistant(
+def gpt_assistant(
     prompt,
     client=OPENAI_CLIENT,
     model_name=OPENAI_MODEL_NAME,
@@ -157,91 +187,50 @@ def save_file(message_history):
         f.write(json_object)
 
 
-def chat_prompt():
+def query_database(database_connection_string, query, database_schema=None):
+            """
+    Query the target database connection and schema using the provided query
+    string
     """
-    Prompt the user for a message and return the response
+    engine = create_engine(database_connection_string)
+    with engine.connect() as connection:
+        if database_schema is not None:
+            command = f"SET SCHEMA '{database_schema}';"
+            connection.execute(text(command)
+        result = connection.execute(text(query))
+        return result.fetchall()
+
+
+def analyze_responses(
+    database_connection_string=DATABASE_CONNECTION_STRING,
+    query=DATABASE_QUERY,
+    schema=DATABASE_SCHEMA,
+):
     """
-    token_limit = 124000
-    # initialize message history storage list
-    message_history = []
-    # initialize prompt variable
-    prompt_count = 1
-    # initialize tokens used variable
-    tokens_used = 0
+    Analyze the open responses using the OpenAI API
+    """
+    # get the open responses from the database
+    open_responses = query_database(
+        database_connection_string, query, schema
+    )
 
-    # initial prompt message
-    if not message_history:
-        print("Provide a prompt for ChatGPT, or enter 'help' or '?' for help.")
-        prompt = input(f"{prompt_count}> ")
+    # create a new OpenAI client
+    create_new_openai_client()
 
-    # loop until the user quits or the token limit is reached
-    while prompt != "q" and tokens_used <= token_limit:
-        # user help
-        if prompt in ["help", "?"]:
-            print(
-                "Type 'q' to quit, 's' to save the conversation to a file, "
-                "or type a message to continue the conversation."
-            )
+    # Prepare the responses for analysis
+    prompt = "Here are the survey responses to analyze:\n"
+    for response in open_responses:
+        prompt += f"- {response[0]}\n"
 
-        # skip the assistant function if the user uses a menu option or the
-        # token limit is reached
-        if prompt not in ["help", "?", "s", ""]:
-            # increment the prompt count
-            prompt_count += 1
-            # call the assistant function
-            # response = hello_gpt_assistant(prompt)
-            role, content, usage = hello_gpt_assistant(prompt)
-            # get the number of tokens used
-            # tokens_used = response.usage.total_tokens
-            tokens_used = usage.total_tokens
-            # add the prompt to the message history
-            user_prompt = {"role": "user", "content": prompt}
-            message_history.append(user_prompt)
-            # append the response to the message history
-            # response_message = {
-            #     "role": response.choices[0].message.role,
-            #     "content": response.choices[0].message.content,
-            # }
-            response_message = {
-                "role": role,
-                "content": content,
-            }
-            message_history.append(response_message)
-            # breakpoint()
-
-        # subsequent prompt messages after first one
-        prompt = input(f"{prompt_count}> ")
-
-        # save the conversation to a text file as json
-        if prompt == "s":
-            save_file(message_history)
-
-    # when token limit is reached, prompt the user to save the conversation or
-    # quit
-    while tokens_used > token_limit and prompt != "q":
-        print(
-            f"Token limit of {token_limit} reached. "
-            "Press 's' to save your conversation or 'q' to quit."
-        )
-        prompt = input(f"{prompt_count}> ")
-        if prompt == "s":
-            save_file(message_history)
-
-    # when quiting, prompt the user to save the conversation or continue
-    # quiting
-    while tokens_used <= token_limit and prompt == "q":
-        print("Quitting, type 's' to save the conversation or ENTER to quit.")
-        prompt = input(f"{prompt_count}> ")
-        if prompt == "s":
-            save_file(message_history)
-        print("Goodbye!")
+    gpt_assistant(prompt)
 
 
 def main():
     """
     Main program
     """
-    chat_prompt()
+    create_new_openai_client()
+    analyze_responses()
 
 
 if __name__ == "__main__":
