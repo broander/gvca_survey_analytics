@@ -243,11 +243,11 @@ def save_file(
     """
     if not file_name:
         file_name = input("Enter a file name: ")
-        file_name += file_location
-    with open(file_name + ".json", "w") as f:
+        file_name = file_location + file_name
+    with open(file_location + file_name + ".json", "w") as f:
         json_object = json.dumps(message_history, indent=4)
         f.write(json_object)
-    print(f"Conversation saved to {file_name}.json")
+    print(f"Conversation saved to {file_location} {file_name}.json")
 
 
 def chat_prompt(initial_prompt=""):
@@ -352,7 +352,6 @@ def chat_prompt(initial_prompt=""):
             save_file(message_history)
         print("Goodbye!")
 
-    # close the OpenAI client session
     if prompt == "q":
         OPENAI_CLIENT.close()
 
