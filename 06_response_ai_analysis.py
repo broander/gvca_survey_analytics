@@ -1,7 +1,10 @@
-# access chatgpt from the cli
+# access chatgpt from the cli and analyze open response data
 #
 # learn more about model tuning here:
 # https://platform.openai.com/docs/api-reference/chat/create
+#
+# simple api example and explanation here:
+# https://community.openai.com/t/build-your-own-ai-assistant-in-10-lines-of-code-python/83210
 #
 # relies on the OPENAI_API_KEY environment variable being set in your
 # terminal with a valid OpenAI API key
