@@ -172,7 +172,7 @@ def create_question_summary(conn):
 def create_grade_summary(conn):
     query_to_bar_chart(
         conn=conn,
-        title="Response Breakdown by Grade Level",
+        title="Response_Breakdown_by_Grade_Level",
         x_axis_label="Grade Level\n(avg score)",
         x_data_label_query="""
             WITH question_avg_score AS
@@ -334,7 +334,7 @@ def by_grade_level(conn, question_id, summarized_text):
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f"{question_id}: " + summarized_text,
+        title=f"{question_id}:_" + summarized_text,
         subfolder=subfolder,
         x_axis_label="Grade Level",
         x_data_label_query=f"""
@@ -415,7 +415,7 @@ def by_support_summary(conn, question_id, summarized_text):
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f"{question_id}: " + summarized_text,
+        title=f"{question_id}:_" + summarized_text,
         subfolder=subfolder,
         x_axis_label="Grade Level",
         x_data_label_query=f"""
@@ -495,7 +495,7 @@ def by_minority_summary(conn, question_id, summarized_text):
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f"{question_id}: " + summarized_text,
+        title=f"{question_id}:_" + summarized_text,
         subfolder=subfolder,
         x_axis_label="Grade Level",
         x_data_label_query=f"""
@@ -575,7 +575,7 @@ def by_first_year_family_summary(conn, question_id, summarized_text):
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f"{question_id}: " + summarized_text,
+        title=f"{question_id}:_" + summarized_text,
         subfolder=subfolder,
         x_axis_label="Grade Level",
         x_data_label_query=f"""
@@ -653,7 +653,7 @@ def by_first_year_family_summary(conn, question_id, summarized_text):
 def q5_student_services(conn):
     query_to_bar_chart(
         conn=conn,
-        title="Q5 (Virtues) with Services Received",
+        title="Q5_(Virtues)_with_Services_Received",
         x_axis_label="Group Status\n(avg score)",
         x_data_label_query="""
             WITH question_avg_score AS
@@ -730,7 +730,7 @@ def yoy_question_diff(conn, question_id, summarized_text):
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f"{question_id}: " + summarized_text,
+        title=f"{question_id}:_" + summarized_text,
         subfolder=subfolder,
         x_axis_label="",
         x_data_label_query=f"""
@@ -833,7 +833,7 @@ def yoy_total_diff(conn):
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title="YoY total difference",
+        title="YoY_total_difference",
         subfolder=subfolder,
         x_axis_label="",
         x_data_label_query="""
