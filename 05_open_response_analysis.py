@@ -1,6 +1,6 @@
 import pandas as pd
-from sqlalchemy import create_engine
-from wordcloud import WordCloud, STOPWORDS
+from sqlalchemy import create_engine, text
+from wordcloud import STOPWORDS, WordCloud
 
 from utilities import load_env_vars
 
@@ -10,7 +10,7 @@ _, DATABASE_SCHEMA, DATABASE_CONNECTION_STRING = load_env_vars()
 def main():
     eng = create_engine(DATABASE_CONNECTION_STRING)
     with eng.connect() as conn:
-        conn.execute(f"SET SCHEMA '{DATABASE_SCHEMA}';")
+        conn.execute(text(f"SET SCHEMA '{DATABASE_SCHEMA}';"))
         build_wordclouds(conn)
 
 
@@ -21,22 +21,42 @@ def build_wordclouds(conn):
     """
     # Curate a list of stopwords
     stopwords = set(STOPWORDS)
-    stopwords.update(["GVCA", "School", "Golden", "View", "Academy",
-                      "Child", "Children", "Student", "Students", "Kids",
-                      "Grader", "Grammar", "Middle", "High",
-                      "Year", "Really", "Often", "Don"
-                      ])
+    stopwords.update(
+        [
+            "GVCA",
+            "School",
+            "Golden",
+            "View",
+            "Academy",
+            "Child",
+            "Children",
+            "Student",
+            "Students",
+            "Kids",
+            "Grader",
+            "Grammar",
+            "Middle",
+            "High",
+            "Year",
+            "Really",
+            "Often",
+            "Don",
+        ]
+    )
 
     # Separate plots for each grade level (and one for all responses together)
-    for grade_level, subtitle in [(None, 'All Response'),
-                                  ('grammar', 'Grammar'),
-                                  ('middle', 'Middle'),
-                                  ('high', 'High')]:
+    for grade_level, subtitle in [
+        (None, "All Response"),
+        ("grammar", "Grammar"),
+        ("middle", "Middle"),
+        ("high", "High"),
+    ]:
 
         # no `grade_level_filter` when looking at all responses
-        grade_level_filter = f'AND {grade_level}' if grade_level else ''
-        df = pd.read_sql(con=conn,
-                         sql=f"""
+        grade_level_filter = f"AND {grade_level}" if grade_level else ""
+        df = pd.read_sql(
+            con=conn,
+            sql=f"""
                                 SELECT question_id,
                                        question_text,
                                        response
@@ -45,11 +65,14 @@ def build_wordclouds(conn):
                                      questions USING (question_id)
                                 WHERE response IS NOT NULL
                                       {grade_level_filter}
-                             """)
+                             """,
+        )
 
         for question_id in df.question_id.unique():
             # expect one "positive" and one "negative" question
-            text = " ".join(df[df.question_id == question_id].response.tolist())
+            text = " ".join(
+                df[df.question_id == question_id].response.tolist()
+            )
             title = df[df.question_id == question_id].question_text.values[0]
 
             build_wordcloud(text, stopwords, title, subtitle)
@@ -60,14 +83,16 @@ def build_wordcloud(text, stopwords, title, subtitle):
     Generate a word cloud image with a transparent background.
     Save as a file in the artifacts/ folder.
     """
-    wordcloud = WordCloud(stopwords=stopwords,
-                          max_words=50,
-                          min_word_length=3,
-                          relative_scaling=1,  # frequency determines word size
-                          scale=4,  # image size
-                          colormap='PuOr',  # semi-close to GVCA colors.  Can also try YlGnBu
-                          background_color=None, mode="RGBA",  # transparent background
-                          ).generate(text)
+    wordcloud = WordCloud(
+        stopwords=stopwords,
+        max_words=50,
+        min_word_length=3,
+        relative_scaling=1,  # frequency determines word size
+        scale=4,  # image size
+        colormap="PuOr",  # semi-close to GVCA colors.  Can also try YlGnBu
+        background_color=None,
+        mode="RGBA",  # transparent background
+    ).generate(text)
     wordcloud.to_file(f"artifacts/Open Response/{title} - {subtitle}.png")
 
 
@@ -108,13 +133,13 @@ def manual_categorization(eng):
         """
 
     with eng.connect() as conn:
-        conn.execute('BEGIN TRANSACTION;')
-        conn.execute(f"SET SCHEMA '{DATABASE_SCHEMA}'")
-        conn.execute('TRUNCATE open_response_categories;')
+        conn.execute(text("BEGIN TRANSACTION;"))
+        conn.execute(text(f"SET SCHEMA '{DATABASE_SCHEMA}'"))
+        conn.execute(text("TRUNCATE open_response_categories;"))
 
-        conn.execute(_entries)
+        conn.execute(text(_entries))
 
-        conn.execute('END TRANSACTION;')
+        conn.execute(text("END TRANSACTION;"))
 
     # Big stories:
     # Upper school attrition,
@@ -129,5 +154,5 @@ def manual_categorization(eng):
     # People don't know about student services
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

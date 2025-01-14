@@ -1,7 +1,8 @@
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
-from pathlib import Path
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Engine as sqlalchemy_Engine
 
 from utilities import load_env_vars
@@ -9,13 +10,14 @@ from utilities import load_env_vars
 _, DATABASE_SCHEMA, DATABASE_CONNECTION_STRING = load_env_vars()
 
 
-def query_to_bar_chart(conn: sqlalchemy_Engine,
-                       title: str,
-                       x_axis_label: str,
-                       x_data_label_query: str,
-                       proportion_query: str,
-                       subfolder: Path = None
-                       ) -> None:
+def query_to_bar_chart(
+    conn: sqlalchemy_Engine,
+    title: str,
+    x_axis_label: str,
+    x_data_label_query: str,
+    proportion_query: str,
+    subfolder: Path = None,
+) -> None:
     """
     Execute two queries and modify results to feed the creation of a stacked bar chart.
     :param conn:
@@ -27,14 +29,27 @@ def query_to_bar_chart(conn: sqlalchemy_Engine,
     :return:
     """
 
-    x_data_labels = pd.read_sql(con=conn, sql=x_data_label_query).title.tolist()
+    x_data_labels = pd.read_sql(
+        con=conn, sql=x_data_label_query
+    ).title.tolist()
     proportions = pd.read_sql(con=conn, sql=proportion_query)
 
-    create_stacked_bar_chart(title=title, x_axis_label=x_axis_label, x_data_labels=x_data_labels,
-                             proportions=proportions, subfolder=subfolder)
+    create_stacked_bar_chart(
+        title=title,
+        x_axis_label=x_axis_label,
+        x_data_labels=x_data_labels,
+        proportions=proportions,
+        subfolder=subfolder,
+    )
 
 
-def create_stacked_bar_chart(title: str, x_axis_label: str, x_data_labels: list, proportions: pd.DataFrame, subfolder: Path = None) -> None:
+def create_stacked_bar_chart(
+    title: str,
+    x_axis_label: str,
+    x_data_labels: list,
+    proportions: pd.DataFrame,
+    subfolder: Path = None,
+) -> None:
     """
     Save a stacked bar chart to ./artifacts/
 
@@ -52,10 +67,22 @@ def create_stacked_bar_chart(title: str, x_axis_label: str, x_data_labels: list,
     r4 = proportions[proportions.response_value == 4].pct.values.tolist()[0]
 
     fig, ax = plt.subplots()
-    ax.bar(x_data_labels, r4, label='Very', color='#6caf40', bottom=[q1 + q2 + q3 for q1, q2, q3 in zip(r1, r2, r3)])
-    ax.bar(x_data_labels, r3, label='Satisfied', color='#4080af', bottom=[q1 + q2 for q1, q2 in zip(r1, r2)])
-    ax.bar(x_data_labels, r2, label='Somewhat', color='#f6c100', bottom=r1)
-    ax.bar(x_data_labels, r1, label='Not', color='#ae3f3f')
+    ax.bar(
+        x_data_labels,
+        r4,
+        label="Very",
+        color="#6caf40",
+        bottom=[q1 + q2 + q3 for q1, q2, q3 in zip(r1, r2, r3)],
+    )
+    ax.bar(
+        x_data_labels,
+        r3,
+        label="Satisfied",
+        color="#4080af",
+        bottom=[q1 + q2 for q1, q2 in zip(r1, r2)],
+    )
+    ax.bar(x_data_labels, r2, label="Somewhat", color="#f6c100", bottom=r1)
+    ax.bar(x_data_labels, r1, label="Not", color="#ae3f3f")
 
     ax.set_title(title)
     ax.legend(loc="upper center", ncol=4)
@@ -63,7 +90,10 @@ def create_stacked_bar_chart(title: str, x_axis_label: str, x_data_labels: list,
     ax.set_ylabel("Proportion")
 
     plt.tight_layout()
-    plt.savefig(subfolder / title if subfolder else f'artifacts/{title}', transparent=True)
+    plt.savefig(
+        subfolder / title if subfolder else f"artifacts/{title}",
+        transparent=True,
+    )
     plt.show()
 
 
@@ -135,7 +165,7 @@ def create_question_summary(conn):
                      JOIN
                  question_totals USING (question_id)
             GROUP BY response_value
-            """
+            """,
     )
 
 
@@ -255,7 +285,7 @@ def create_grade_summary(conn):
              level_totals USING (level_name)
         GROUP BY response_value
         ;
-        """
+        """,
     )
 
 
@@ -268,16 +298,20 @@ def breakout_by_question(conn):
             FROM questions
             WHERE question_type = 'rank'
             """,
-        con=conn
+        con=conn,
     )
-    for (question_id, question_text) in questions.itertuples(index=False, name=None):
+    for question_id, question_text in questions.itertuples(
+        index=False, name=None
+    ):
         summarized_text = question_text
         if question_id == 3:
-            summarized_text = 'Satisfaction with education'
+            summarized_text = "Satisfaction with education"
         elif question_id == 4:
             summarized_text = "Satisfaction with child's intellectual growth"
         elif question_id == 5:
-            summarized_text = 'How well is the school culture reflected by the virtues?'
+            summarized_text = (
+                "How well is the school culture reflected by the virtues?"
+            )
         elif question_id == 6:
             summarized_text = "Satisfaction with child's growth in moral character and civic virtue"
         elif question_id == 7:
@@ -296,13 +330,13 @@ def by_grade_level(conn, question_id, summarized_text):
     """
     Given a question_id, create a chart breaking out each grade into its own column
     """
-    subfolder = Path('artifacts/Rank Response - Grade Level')
+    subfolder = Path("artifacts/Rank Response - Grade Level")
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f'{question_id}: ' + summarized_text,
+        title=f"{question_id}: " + summarized_text,
         subfolder=subfolder,
-        x_axis_label='Grade Level',
+        x_axis_label="Grade Level",
         x_data_label_query=f"""
             SELECT CASE WHEN grammar THEN 'Grammar'
                         WHEN middle THEN 'Middle'
@@ -369,7 +403,7 @@ def by_grade_level(conn, question_id, summarized_text):
                      JOIN
                  sum_w_totals USING (level)
             GROUP BY response_value
-            ;"""
+            ;""",
     )
 
 
@@ -377,13 +411,13 @@ def by_support_summary(conn, question_id, summarized_text):
     """
     Given a question_id, create a chart breaking out students who received support services from those who did not
     """
-    subfolder = Path('artifacts/Rank Response - Student Services')
+    subfolder = Path("artifacts/Rank Response - Student Services")
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f'{question_id}: ' + summarized_text,
+        title=f"{question_id}: " + summarized_text,
         subfolder=subfolder,
-        x_axis_label='Grade Level',
+        x_axis_label="Grade Level",
         x_data_label_query=f"""
             SELECT CASE
                        WHEN respondents.any_support THEN 'Received Support'
@@ -452,18 +486,18 @@ def by_support_summary(conn, question_id, summarized_text):
                      JOIN
                  sum_w_totals USING (demographic)
             GROUP BY response_value
-            ;"""
+            ;""",
     )
 
 
 def by_minority_summary(conn, question_id, summarized_text):
-    subfolder = Path('artifacts/Rank Response - Minority')
+    subfolder = Path("artifacts/Rank Response - Minority")
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f'{question_id}: ' + summarized_text,
+        title=f"{question_id}: " + summarized_text,
         subfolder=subfolder,
-        x_axis_label='Grade Level',
+        x_axis_label="Grade Level",
         x_data_label_query=f"""
             SELECT CASE
                        WHEN minority THEN 'Minority'
@@ -532,18 +566,18 @@ def by_minority_summary(conn, question_id, summarized_text):
                          JOIN
                      sum_w_totals USING (demographic)
                 GROUP BY response_value
-                ;"""
+                ;""",
     )
 
 
 def by_first_year_family_summary(conn, question_id, summarized_text):
-    subfolder = Path('artifacts/Rank Response - First Year Families')
+    subfolder = Path("artifacts/Rank Response - First Year Families")
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f'{question_id}: ' + summarized_text,
+        title=f"{question_id}: " + summarized_text,
         subfolder=subfolder,
-        x_axis_label='Grade Level',
+        x_axis_label="Grade Level",
         x_data_label_query=f"""
             SELECT CASE
                        WHEN tenure = 1 THEN 'First Year Family'
@@ -612,15 +646,15 @@ def by_first_year_family_summary(conn, question_id, summarized_text):
                          JOIN
                      sum_w_totals USING (demographic)
                 GROUP BY response_value
-                ;"""
+                ;""",
     )
 
 
 def q5_student_services(conn):
     query_to_bar_chart(
         conn=conn,
-        title='Q5 (Virtues) with Services Received',
-        x_axis_label='Group Status\n(avg score)',
+        title="Q5 (Virtues) with Services Received",
+        x_axis_label="Group Status\n(avg score)",
         x_data_label_query="""
             WITH question_avg_score AS
                  (
@@ -687,18 +721,18 @@ def q5_student_services(conn):
                      JOIN
                  question_totals USING (question_id)
             GROUP BY response_value
-            """
+            """,
     )
 
 
 def yoy_question_diff(conn, question_id, summarized_text):
-    subfolder = Path('artifacts/yoy_comparison')
+    subfolder = Path("artifacts/yoy_comparison")
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title=f'{question_id}: ' + summarized_text,
+        title=f"{question_id}: " + summarized_text,
         subfolder=subfolder,
-        x_axis_label='',
+        x_axis_label="",
         x_data_label_query=f"""
             WITH pop_2024 AS
                      (
@@ -790,18 +824,18 @@ def yoy_question_diff(conn, question_id, summarized_text):
                    ARRAY_AGG(yr ORDER BY yr) AS year_order
             FROM distribution
             GROUP BY response_value
-            """
+            """,
     )
 
 
 def yoy_total_diff(conn):
-    subfolder = Path('artifacts/yoy_comparison')
+    subfolder = Path("artifacts/yoy_comparison")
     subfolder.mkdir(parents=True, exist_ok=True)
     query_to_bar_chart(
         conn=conn,
-        title='YoY total difference',
+        title="YoY total difference",
         subfolder=subfolder,
-        x_axis_label='',
+        x_axis_label="",
         x_data_label_query="""
             WITH pop_2024 AS
                      (
@@ -889,13 +923,13 @@ def yoy_total_diff(conn):
                    ARRAY_AGG(yr ORDER BY yr) AS year_order
             FROM distribution
             GROUP BY response_value
-            """
+            """,
     )
 
 
 def main():
     with create_engine(DATABASE_CONNECTION_STRING).connect() as conn:
-        conn.execute(f"SET SCHEMA '{DATABASE_SCHEMA}'")
+        conn.execute(text(f"SET SCHEMA '{DATABASE_SCHEMA}'"))
 
         # create_question_summary(conn)
         create_grade_summary(conn)
@@ -904,5 +938,5 @@ def main():
         # yoy_total_diff(conn)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
