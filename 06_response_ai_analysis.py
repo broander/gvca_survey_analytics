@@ -74,8 +74,8 @@ def create_new_openai_client():
 # see models here: https://platform.openai.com/docs/models
 # OPENAI_MODEL_NAME = "gpt-4o"  # standard flagship model
 # OPENAI_MODEL_NAME = "gpt-4o-mini"   # like gpt-3.5-turbo but faster and
-# OPENAI_MODEL_NAME = "o1-preview"  # most advanced, better at complex tasks
-OPENAI_MODEL_NAME = "o1-mini"  # most advanced, better at complex tasks
+OPENAI_MODEL_NAME = "o1-preview"  # most advanced, better at complex tasks
+# OPENAI_MODEL_NAME = "o1-mini"  # most advanced, better at complex tasks
 OPENAI_MSG_STREAM = True
 create_new_openai_client()
 
