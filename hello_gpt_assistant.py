@@ -1,21 +1,22 @@
-# access chatgpt from the cli
-#
-# learn more about model tuning here:
-# https://platform.openai.com/docs/api-reference/chat/create
-#
-# simple api example and explanation here:
-# https://community.openai.com/t/build-your-own-ai-assistant-in-10-lines-of-code-python/83210
-#
-# relies on the OPENAI_API_KEY environment variable being set in your
-# terminal with a valid OpenAI API key
-# this is set via github codespaces secret management, if not set make sure
-# it is shared with this repository in codespaces settings
+"""
+Access chatgpt from the cli
+
+learn more about model tuning here:
+https://platform.openai.com/docs/api-reference/chat/create
+
+simple api example and explanation here:
+https://community.openai.com/t/build-your-own-ai-assistant-in-10-lines-of-code-python/83210
+
+relies on the OPENAI_API_KEY environment variable being set in your
+terminal with a valid OpenAI API key
+this is set via github codespaces secret management, if not set make sure
+it is shared with this repository in codespaces settings
+"""
 
 import argparse
 import datetime
 import json
 import os
-from pprint import pprint
 
 from openai import OpenAI
 
@@ -310,6 +311,7 @@ def chat_prompt(
     # if initial prompt provided as argument
     else:
         prompt = initial_prompt
+        print("Initial prompt provided.  Silently processing, please standby.")
 
     # main loop: loop until the user quits or the token limit is reached
     while prompt != "q" and tokens_used <= token_limit:
@@ -462,21 +464,19 @@ def argument_parser():
     return args
 
 
-def main():
+def main(**kwargs):
     """
-    Main program
+    Main function to process parameters and call the chat prompt
     """
-    # parse the command line arguments
-    args = argument_parser()
 
-    # initialize variables using the args
-    model = OPENAI_MODELS_DICT[args.model]
-    context = args.context
-    stream = args.stream
-    history_file = args.history
-    file = args.file
-    location = args.location
-    prompt = args.prompt
+    # process keyword arguments
+    model = kwargs.get("model", OPENAI_MODELS_DICT["gpt-4o"])
+    context = kwargs.get("context", "")
+    stream = kwargs.get("stream", True)
+    history_file = kwargs.get("history", "")
+    file = kwargs.get("file", "")
+    location = kwargs.get("location", "")
+    prompt = kwargs.get("prompt", "")
 
     # load the message history from a file if provided
     message_history = []
@@ -484,7 +484,6 @@ def main():
         message_history = load_message_history(history_file)
 
     # call the chat prompt
-    # chat_prompt(initial_prompt=prompt, message_history=message_history)
     chat_prompt(
         model=model,
         stream=stream,
@@ -497,4 +496,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # parse the command line arguments
+    args = argument_parser()
+    main(
+        model=OPENAI_MODELS_DICT[args.model],
+        context=args.context,
+        stream=args.stream,
+        history=args.history,
+        file=args.file,
+        location=args.location,
+        prompt=args.prompt,
+    )
