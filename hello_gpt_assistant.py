@@ -285,6 +285,7 @@ def load_message_history(file_name, file_location=""):
             file_opened = True
         except FileNotFoundError:
             print("History file not found. Please try again.")
+            file_name = ""
     return message_history
 
 
@@ -318,8 +319,12 @@ def save_prompt_file(prompt, file_name="", file_location="."):
                 "Enter a file location, or '.' for current directory: "
             )
     # save file
+    # print first 100 characters of prompt
+    print(f"Prompt: {prompt[:100]}")
     with open(file_location + file_name + ".txt", "w") as f:
         f.write(prompt)
+    # current_directory = os.getcwd()
+    # print(f"Current directory is: {current_directory}")
     print(f"Prompt file saved to {file_location} {file_name}.txt")
 
 
@@ -340,11 +345,13 @@ def open_prompt_file(file_name, file_location=""):
             print("No file name provided. Please try again.")
             file_name = input("Enter a file name: ")
         try:
+            print(f"Opening prompt file {file_location} {file_name}")
             with open(file_location + file_name, "r") as f:
                 prompt_string = f.read()
             file_opened = True
         except FileNotFoundError:
             print("Prompt file not found. Please try again.")
+            file_name = ""
     return prompt_string
 
 

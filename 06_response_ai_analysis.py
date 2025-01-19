@@ -83,45 +83,6 @@ def analyze_responses(
     database_connection_string=DATABASE_CONNECTION_STRING,
     query=DATABASE_QUERY,
     schema=DATABASE_SCHEMA,
-    history_file=HISTORY_FILE_NAME,
-):
-    """
-    Analyze the open responses using the OpenAI API
-    """
-
-    # get the open responses from the database
-    open_responses = query_database(database_connection_string, query, schema)
-
-    # Prepare the responses for analysis
-    prompt = "Here are the survey responses to analyze:\n"
-    for response in open_responses:
-        prompt += f"- {response[0]}\n"
-
-    # load the message history from a file if provided
-    message_history = []
-    if history_file:
-        message_history = load_message_history(history_file)
-
-    # uses the prompt context provided as a global variable and
-    # takes the responses as the first user prompt input before continuing
-    # the chat session so you can provie futher direction to the AI
-
-    # call hello_gpt_assistant with the arguments to analyze the responses
-    hga_main(
-        model=OPENAI_MODELS_DICT[OPENAI_MODEL_NAME],
-        context=OPENAI_PROMPT_CONTEXT,
-        stream=True,
-        history=history_file,
-        file=OUTPUT_FILE_NAME,
-        location=OUTPUT_FILES_LOCATION,
-        prompt=prompt,
-    )
-
-
-def analyze_responses_v2(
-    database_connection_string=DATABASE_CONNECTION_STRING,
-    query=DATABASE_QUERY,
-    schema=DATABASE_SCHEMA,
     script_path=AI_SCRIPT_PATH,
     history_file=HISTORY_FILE_NAME,
 ):
@@ -140,8 +101,11 @@ def analyze_responses_v2(
     # save the prompt to a file
     # TODO: consider refactor to use a temporary file
     # TODO: refactor file path to align with TODOs on save file functions
-    temp_prompt_file_path = "temp_prompt_file.txt"
+    temp_prompt_file_name = "temp_prompt_file"
+    temp_prompt_file_path = temp_prompt_file_name
+    temp_prompt_file_full_name = temp_prompt_file_path + ".txt"
     save_prompt_file(prompt, temp_prompt_file_path)
+    # breakpoint()
 
     # uses the prompt context provided as a global variable and
     # takes the responses as the first user prompt input before continuing
@@ -165,31 +129,40 @@ def analyze_responses_v2(
             "--location",
             OUTPUT_FILES_LOCATION,
             "--prompt_file",
-            temp_prompt_file_path,
+            temp_prompt_file_full_name,
         ],
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        text=True,
     )
 
-    # cleanup the temporary prompt file
-    subprocess.run(["rm", temp_prompt_file_path], check=True)
+    # Read the output in real-time
+    while True:
+        output = process.stdout.readline()
+        if output == "" and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())
 
-    # Capture the output and errors of the subprocess
-    stdout, stderr = process.communicate()
-
-    # Print the output and errors of the subprocess
-    print(stdout.decode())
-
+    # Check for any errors
+    stderr = process.stderr.read()
     if stderr:
         print("Errors from subprocess:")
         print(stderr.decode())
+
+    # cleanup the temporary prompt file
+    subprocess.run(
+        ["rm", temp_prompt_file_full_name],
+        check=True,
+    )
 
 
 def main():
     """
     Main program
     """
-    analyze_responses_v2()
+    analyze_responses()
 
 
 if __name__ == "__main__":
