@@ -305,18 +305,18 @@ def save_prompt_file(prompt, file_name="", file_location="."):
         if not os.path.exists(file_location):
             print("Location directory does not exist.  Please try again.")
             file_location = ""
-    # if file location and file name, ready to save
-    if file_location and file_name:
-        file_saved = True
-    # prompt user for file name if not provided
-    while not file_name:
-        file_name = input("No file name provided. Please try again.")
-    # prompt user for file location if not provided or was invalid and set to
-    # empty string
-    while not file_location:
-        file_location = input(
-            "Enter a file location, or '.' for current directory: "
-        )
+        # if file location and file name, ready to save
+        if file_location and file_name:
+            file_saved = True
+        # prompt user for file name if not provided
+        while not file_name:
+            file_name = input("No file name provided. Please try again.")
+        # prompt user for file location if not provided or was invalid and set to
+        # empty string
+        while not file_location:
+            file_location = input(
+                "Enter a file location, or '.' for current directory: "
+            )
     # save file
     with open(file_location + file_name + ".txt", "w") as f:
         f.write(prompt)
