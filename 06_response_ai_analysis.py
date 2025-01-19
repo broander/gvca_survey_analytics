@@ -24,6 +24,11 @@ try:
 except:
     from utilities import load_env_vars
 
+# specify the desired model to be used for the OpenAI API
+# see models here: https://platform.openai.com/docs/models
+OPENAI_MODEL_NAME = "o1-preview"
+
+# specify the initial prompt context for the OpenAI API
 # prompt engineering best practices:
 # https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-the-openai-api
 # prompt context for the open response analysis task
@@ -40,7 +45,45 @@ OPENAI_PROMPT_CONTEXT = """
     first a written summary of the key themes and areas of focus, and then
     second a list of 10-20 bullet point category names that capture the main
     themes shared in the open responses.
+    \n
+    In analyzing the responses, consider the following categories which showed
+    up in survey results in past years and may be relevant to analyzing this
+    years results.  If relevant, include these categories in your analysis and
+    results.
+    \n
+    These categories to consider are: Concern, Curriculum, Good Outcomes,
+    Policies & Administration, Teachers, Culture & Virtues, Wellbeing,
+    Communication, Community, Extra-curriculars & Sports, Facilities, and
+    Other.
     """
+# specify optional prompt history file to load
+HISTORY_FILE_NAME = ""
+# HISTORY_FILE_NAME = "2025-01-13_04-07-37_ai_response_analysis.json"
+
+# specify model settings and initialize
+# see models here: https://platform.openai.com/docs/models
+OPENAI_MODELS_DICT = {
+    "gpt-4o": {
+        "name": "gpt-4o",
+        "max_tokens": 128000,
+    },
+    "gpt-4o-mini": {
+        "name": "gpt-4o-mini",
+        "max_tokens": 128000,
+    },
+    "o1-preview": {
+        "name": "o1-preview",
+        "max_tokens": 128000,
+    },
+    "o1": {
+        "name": "o1",
+        "max_tokens": 200000,
+    },
+    "o1-mini": {
+        "name": "o1-mini",
+        "max_tokens": 128000,
+    },
+}
 
 # Output Files Location
 OUTPUT_FILES_LOCATION = "./response_analysis_logs/"
@@ -70,22 +113,21 @@ def create_new_openai_client():
     OPENAI_CLIENT.api_key = os.getenv("OPENAI_API_KEY")
 
 
-# specify model settings and initialize
-# see models here: https://platform.openai.com/docs/models
-# OPENAI_MODEL_NAME = "gpt-4o"  # standard flagship model
-# OPENAI_MODEL_NAME = "gpt-4o-mini"   # like gpt-3.5-turbo but faster and
-OPENAI_MODEL_NAME = "o1-preview"  # most advanced, better at complex tasks
-# OPENAI_MODEL_NAME = "o1-mini"  # most advanced, better at complex tasks
+OPENAI_MODEL = {}
 OPENAI_MSG_STREAM = True
 create_new_openai_client()
 
 
-def set_openai_model_name(model_name="gpt-4o"):
+def set_openai_model(model_name=OPENAI_MODEL_NAME):
     """
-    Set the model name for the OpenAI API
+    Set the model for the OpenAI API
     """
-    global OPENAI_MODEL_NAME
-    OPENAI_MODEL_NAME = model_name
+    global OPENAI_MODEL
+    OPENAI_MODEL = OPENAI_MODELS_DICT[model_name]
+
+
+# set the desired model
+set_openai_model(OPENAI_MODEL_NAME)
 
 
 def set_prompt_content(prompt_context=OPENAI_PROMPT_CONTEXT):
@@ -109,7 +151,7 @@ def gpt_assistant(
     prompt_context=OPENAI_PROMPT_CONTEXT,
     message_history=[],
     client=OPENAI_CLIENT,
-    model_name=OPENAI_MODEL_NAME,
+    model_name=OPENAI_MODEL["name"],
     stream=OPENAI_MSG_STREAM,
 ):
     """
@@ -137,7 +179,7 @@ def gpt_assistant(
     # define the messages list based on the model name, as o1 doesn't support
     # the system prompt
     messages = []
-    if model_name in ["o1-preview", "o1-mini"]:
+    if model_name in ["o1", "o1-preview", "o1-mini"]:
         if prompt_context:
             messages = [
                 {
@@ -253,13 +295,35 @@ def save_file(
     print(f"Conversation saved to {file_location} {file_name}.json")
 
 
-def chat_prompt(initial_prompt=""):
+def load_message_history(
+    file_name=HISTORY_FILE_NAME, file_location=OUTPUT_FILES_LOCATION
+):
+    """
+    Load the message history from a file.  Message history is a list of
+    dictionaries with keys 'role' and 'content'
+    """
+    if not file_name:
+        return
+    try:
+        with open(file_location + file_name, "r") as f:
+            message_history = json.load(f)
+    except FileNotFoundError:
+        print("History file not found. Please try again.")
+        if file_location:
+            print(f"Looking in {file_location}")
+        file_name = input("Enter a file name: ")
+        return
+    return message_history
+
+
+def chat_prompt(initial_prompt="", message_history=None):
     """
     Prompt the user for a message and return the response
     """
-    token_limit = 124000
+    # set the token limit
+    token_limit = OPENAI_MODEL["max_tokens"]
     # initialize message history storage list
-    message_history = []
+    # message_history = []
     # initialize prompt variable
     prompt_count = 1
     # initialize tokens used variable
@@ -267,11 +331,18 @@ def chat_prompt(initial_prompt=""):
     # initialize the prompt variable
     prompt = ""
 
-    # initial prompt message
-
-    # initial prompt message
-    # if no initial prompt provided as argument
-    if not initial_prompt:
+    # if message history provided as argument, print old messages
+    if message_history:
+        print("Message history provided.  Printing message history.")
+        for message in message_history:
+            if message["role"] == "user":
+                print(f"\n{prompt_count}> {message['content']} \n")
+            elif message["role"] == "assistant":
+                print(f"\n {message['content']} \n")
+                # iterate prompt count for every reply by assistant
+                prompt_count += 1
+    # now done with message history if provided, prompt user for input
+    if message_history or not initial_prompt:
         print("Provide a prompt for ChatGPT, or enter 'help' or '?' for help.")
         prompt = input(f"{prompt_count}> ")
     # if initial prompt provided as argument
@@ -291,7 +362,7 @@ def chat_prompt(initial_prompt=""):
         # token limit is reached
         if prompt not in ["help", "?", "s", "", "t"]:
             # if first prompt, send the prompt context text
-            if prompt_count == 1:
+            if prompt_count == 1 and not message_history:
                 prompt_context = OPENAI_PROMPT_CONTEXT
             else:
                 prompt_context = ""
@@ -355,6 +426,7 @@ def chat_prompt(initial_prompt=""):
             save_file(message_history)
         print("Goodbye!")
 
+    # close the OpenAI client session
     if prompt == "q":
         OPENAI_CLIENT.close()
 
@@ -377,6 +449,7 @@ def analyze_responses(
     database_connection_string=DATABASE_CONNECTION_STRING,
     query=DATABASE_QUERY,
     schema=DATABASE_SCHEMA,
+    history_file=HISTORY_FILE_NAME,
 ):
     """
     Analyze the open responses using the OpenAI API
@@ -390,11 +463,16 @@ def analyze_responses(
     for response in open_responses:
         prompt += f"- {response[0]}\n"
 
+    # load the message history from a file if provided
+    message_history = []
+    if history_file:
+        message_history = load_message_history(history_file)
+
     # call the chat_prompt function to analyze the responses
     # uses the prompt context provided as a global variable and silently
     # takes the responses as the first user prompt input before continuing
     # the chat session so you can provie futher direction to the AI
-    chat_prompt(prompt)
+    chat_prompt(initial_prompt=prompt, message_history=message_history)
 
 
 def main():
