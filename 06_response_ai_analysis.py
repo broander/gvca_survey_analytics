@@ -3,12 +3,16 @@ Access chatgpt from the cli and analyze open response data
 """
 
 import datetime
+import subprocess
 
 from sqlalchemy import create_engine, text
 
-from hello_gpt_assistant import OPENAI_MODELS_DICT
-from hello_gpt_assistant import main as hga_main
+from hello_gpt_assistant import (OPENAI_MODELS_DICT, load_message_history,
+                                 save_prompt_file)
 from utilities import load_env_vars
+
+# path to the hello_gpt_assistant.py script to call as a subprocess
+AI_SCRIPT_PATH = "./hello_gpt_assistant.py"
 
 # specify the desired model to be used for the OpenAI API
 # see models here: https://platform.openai.com/docs/models
@@ -114,11 +118,78 @@ def analyze_responses(
     )
 
 
+def analyze_responses_v2(
+    database_connection_string=DATABASE_CONNECTION_STRING,
+    query=DATABASE_QUERY,
+    schema=DATABASE_SCHEMA,
+    script_path=AI_SCRIPT_PATH,
+    history_file=HISTORY_FILE_NAME,
+):
+    """
+    Analyze the open responses using the OpenAI API
+    """
+
+    # get the open responses from the database
+    open_responses = query_database(database_connection_string, query, schema)
+
+    # Prepare the responses for submitting as first prompt
+    prompt = "Here are the survey responses to analyze:\n"
+    for response in open_responses:
+        prompt += f"- {response[0]}\n"
+
+    # save the prompt to a file
+    # TODO: consider refactor to use a temporary file
+    # TODO: refactor file path to align with TODOs on save file functions
+    temp_prompt_file_path = "temp_prompt_file.txt"
+    save_prompt_file(prompt, temp_prompt_file_path)
+
+    # uses the prompt context provided as a global variable and
+    # takes the responses as the first user prompt input before continuing
+    # the chat session so you can provie futher direction to the AI
+
+    # call hello_gpt_assistant as subprocess with the arguments to analyze the
+    # responses.  This allows this script to provide inputs to the user input
+    # prompts and receive the AI responses as output
+    process = subprocess.Popen(
+        [
+            "python",
+            script_path,
+            "--model",
+            OPENAI_MODEL_NAME,
+            "--context",
+            OPENAI_PROMPT_CONTEXT,
+            "--history",
+            history_file,
+            "--file",
+            OUTPUT_FILE_NAME,
+            "--location",
+            OUTPUT_FILES_LOCATION,
+            "--prompt_file",
+            temp_prompt_file_path,
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    # cleanup the temporary prompt file
+    subprocess.run(["rm", temp_prompt_file_path], check=True)
+
+    # Capture the output and errors of the subprocess
+    stdout, stderr = process.communicate()
+
+    # Print the output and errors of the subprocess
+    print(stdout.decode())
+
+    if stderr:
+        print("Errors from subprocess:")
+        print(stderr.decode())
+
+
 def main():
     """
     Main program
     """
-    analyze_responses()
+    analyze_responses_v2()
 
 
 if __name__ == "__main__":

@@ -67,7 +67,7 @@ OPENAI_MODELS_DICT = {
 }
 
 # Output Files Location
-OUTPUT_FILES_LOCATION = ""
+OUTPUT_FILES_LOCATION = "."
 # OUTPUT_FILES_LOCATION = "."
 # Output File Name global variable based on current date and time
 OUTPUT_FILE_NAME = ""
@@ -217,6 +217,9 @@ def gpt_assistant(
     return role, message_content, usage
 
 
+# TODO: refactor to fix file location behavior so can accept fully qualified
+# file names or just file name and file location, and if no file location
+# assume current directory
 def save_file(
     message_history,
     file_name="",
@@ -225,18 +228,10 @@ def save_file(
     """
     Prompt the user for a location and filename and save the conversation to a file
     """
-    while not file_name:
-        file_name = input(
-            "Enter a file name, or 't' for a standard timestamp-based name: "
-        )
-        if file_name == "t":
-            file_name = datetime.datetime.now().strftime(
-                "%Y-%m-%d_%H-%M-%S" + "_ai_response_history"
-            )
-    while not file_location:
-        file_location = input(
-            "Enter a file location, or '.' for current directory: "
-        )
+    file_saved = False
+    while not file_saved:
+        # breakpoint()
+        # make minor corrections to file location and check quality
         if "~" in file_location:
             file_location = os.path.expanduser(file_location)
         if file_location and not file_location.endswith("/"):
@@ -244,29 +239,113 @@ def save_file(
         if not os.path.exists(file_location):
             print("Location directory does not exist.  Please try again.")
             file_location = ""
+        # if file location and file name, ready to save
+        if file_location and file_name:
+            file_saved = True
+        # prompt user for file name if not provided
+        while not file_name:
+            file_name = input(
+                "Enter a file name, or 't' for a standard timestamp-based name: "
+            )
+            if file_name == "t":
+                file_name = datetime.datetime.now().strftime(
+                    "%Y-%m-%d_%H-%M-%S" + "_ai_response_history"
+                )
+        # prompt user for file location if not provided or was invalid and set
+        # to empty string
+        while not file_location:
+            file_location = input(
+                "Enter a file location, or '.' for current directory: "
+            )
+    # save file
     with open(file_location + file_name + ".json", "w") as f:
         json_object = json.dumps(message_history, indent=4)
         f.write(json_object)
     print(f"Conversation saved to {file_location} {file_name}.json")
 
 
-def load_message_history(file_name, file_location):
+def load_message_history(file_name, file_location=""):
     """
-    Load the message history from a file.  Message history is a list of
-    dictionaries with keys 'role' and 'content'
+    Load long prompt string from a file.  File should contain just the content
+    desired for the prompt string.
+    Input:
+        file_name: str: the file name to load
+            file name should either be full path or file name with path provided
+        file_location: str: the file location to look for the file
+    Output: message_history list: the message history
     """
-    if not file_name:
-        return
-    try:
-        with open(file_location + file_name, "r") as f:
-            message_history = json.load(f)
-    except FileNotFoundError:
-        print("History file not found. Please try again.")
-        if file_location:
-            print(f"Looking in {file_location}")
-        file_name = input("Enter a file name: ")
-        return
+    file_opened = False
+    while not file_opened:
+        while not file_name:
+            print("No file name provided. Please try again.")
+            file_name = input("Enter a file name: ")
+        try:
+            with open(file_location + file_name, "r") as f:
+                message_history = json.load(f)
+            file_opened = True
+        except FileNotFoundError:
+            print("History file not found. Please try again.")
     return message_history
+
+
+# TODO: refactor to fix file location behavior so can accept fully qualified
+# file names or just file name and file location, and if no file location
+# assume current directory
+def save_prompt_file(prompt, file_name="", file_location="."):
+    """
+    Save the prompt to a file
+    """
+    file_saved = False
+    while not file_saved:
+        # make minor corrections to file location and check quality
+        if "~" in file_location or file_location == ".":
+            file_location = os.path.expanduser(file_location)
+        if file_location and not file_location.endswith("/"):
+            file_location += "/"
+        if not os.path.exists(file_location):
+            print("Location directory does not exist.  Please try again.")
+            file_location = ""
+    # if file location and file name, ready to save
+    if file_location and file_name:
+        file_saved = True
+    # prompt user for file name if not provided
+    while not file_name:
+        file_name = input("No file name provided. Please try again.")
+    # prompt user for file location if not provided or was invalid and set to
+    # empty string
+    while not file_location:
+        file_location = input(
+            "Enter a file location, or '.' for current directory: "
+        )
+    # save file
+    with open(file_location + file_name + ".txt", "w") as f:
+        f.write(prompt)
+    print(f"Prompt file saved to {file_location} {file_name}.txt")
+
+
+def open_prompt_file(file_name, file_location=""):
+    """
+    Open the prompt file and return the prompt text.
+    Load long prompt string from a file.  File should contain just the content
+    desired for the prompt string.
+    Input:
+        file_name: str: the file name to load
+            file name should either be full path or file name with path provided
+        file_location: str: the file location to look for the file
+    Output: prompt: str: the prompt
+    """
+    file_opened = False
+    while not file_opened:
+        while not file_name:
+            print("No file name provided. Please try again.")
+            file_name = input("Enter a file name: ")
+        try:
+            with open(file_location + file_name, "r") as f:
+                prompt_string = f.read()
+            file_opened = True
+        except FileNotFoundError:
+            print("Prompt file not found. Please try again.")
+    return prompt_string
 
 
 def chat_prompt(
@@ -276,7 +355,7 @@ def chat_prompt(
     initial_prompt="",
     message_history=[],
     file="",
-    location="",
+    location=".",
 ):
     """
     Prompt the user for a message and return the response
@@ -458,6 +537,13 @@ def argument_parser():
         type=str,
         help="Initial prompt to execute after context is set; default is empty",
         default="",
+    ),
+    parser.add_argument(
+        "-pf",
+        "--prompt_file",
+        type=str,
+        help="Prompt file name to load; default is empty; file should be text only",
+        default="",
     )
 
     args = parser.parse_args()
@@ -475,13 +561,18 @@ def main(**kwargs):
     stream = kwargs.get("stream", True)
     history_file = kwargs.get("history", "")
     file = kwargs.get("file", "")
-    location = kwargs.get("location", "")
+    location = kwargs.get("location", ".")
     prompt = kwargs.get("prompt", "")
+    prompt_file = kwargs.get("prompt_file", "")
 
     # load the message history from a file if provided
     message_history = []
     if history_file:
         message_history = load_message_history(history_file)
+
+    # load the prompt from a file if provided
+    if prompt_file:
+        prompt = open_prompt_file(prompt_file)
 
     # call the chat prompt
     chat_prompt(
@@ -506,4 +597,5 @@ if __name__ == "__main__":
         file=args.file,
         location=args.location,
         prompt=args.prompt,
+        prompt_file=args.prompt_file,
     )
