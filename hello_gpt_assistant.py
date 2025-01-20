@@ -320,7 +320,7 @@ def save_prompt_file(prompt, file_name="", file_location="."):
             )
     # save file
     # print first 100 characters of prompt
-    print(f"Prompt: {prompt[:100]}")
+    # print(f"Prompt: {prompt[:100]}")
     with open(file_location + file_name + ".txt", "w") as f:
         f.write(prompt)
     # current_directory = os.getcwd()
