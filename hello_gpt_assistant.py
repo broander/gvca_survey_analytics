@@ -81,13 +81,14 @@ OUTPUT_FILE_NAME = ""
 
 def create_new_openai_client():
     """
-    Create a new OpenAI API client and attach to the global variable
+    Create a new OpenAI API client and return the object
     """
     openai_client = OpenAI()
     openai_client.api_key = os.getenv("OPENAI_API_KEY")
     return openai_client
 
 
+# TODO: refactor to fix message history dangerous default value as list
 def gpt_assistant(
     prompt,
     prompt_context="",
@@ -358,6 +359,7 @@ def open_prompt_file(file_name, file_location=""):
     return prompt_string
 
 
+# TODO: refactor to fix dangerous default value of model dict
 def chat_prompt(
     model=OPENAI_MODELS_DICT["gpt-4o"],
     stream=True,
