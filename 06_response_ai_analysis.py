@@ -3,14 +3,12 @@ Access chatgpt from the cli and analyze open response data
 """
 
 import datetime
-import re
 import subprocess
-import sys
 
 from sqlalchemy import create_engine, text
 
-from hello_gpt_assistant import (OPENAI_MODELS_DICT, chat_subprocess,
-                                 load_message_history, save_prompt_file)
+from hello_gpt_assistant import (chat_subprocess, load_message_history,
+                                 save_prompt_file)
 from utilities import load_env_vars
 
 # path to the hello_gpt_assistant.py script to call as a subprocess
