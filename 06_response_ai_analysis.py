@@ -9,8 +9,8 @@ import sys
 
 from sqlalchemy import create_engine, text
 
-from hello_gpt_assistant import (OPENAI_MODELS_DICT, load_message_history,
-                                 save_prompt_file)
+from hello_gpt_assistant import (OPENAI_MODELS_DICT, chat_subprocess,
+                                 load_message_history, save_prompt_file)
 from utilities import load_env_vars
 
 # path to the hello_gpt_assistant.py script to call as a subprocess
@@ -95,68 +95,6 @@ def query_database(database_connection_string, query, database_schema=None):
             connection.execute(text(command))
         result = connection.execute(text(query))
         return result.fetchall()
-
-
-def chat_subprocess(args_list):
-    """
-    Call the hello_gpt_assistant.py script as a subprocess
-    Input: args_list - list of arguments to pass to the subprocess
-    Assumed to be the same arguments as the hello_gpt_assistant.py script
-    """
-    # call hello_gpt_assistant as subprocess with the arguments to analyze the
-    # responses.  This allows this script to provide inputs to the user input
-    # prompts and receive the AI responses as output
-
-    # define the pattern to match the subprocess prompt
-    # should match patterh of "1>", "2>", "3>", etc. like in the
-    # hello_gpt_assistant.py
-    subprocess_prompt_pattern = re.compile(r"\d+\> ")
-
-    with subprocess.Popen(
-        args_list,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        bufsize=0,
-        text=True,
-    ) as process:
-
-        buffer = ""
-
-        # Read the output in real-time
-        while True:
-            char = process.stdout.read(1)
-            if not char:
-                # EOF reached
-                break
-
-            # add the character to the buffer
-            buffer += char
-
-            # print the char so we see what's happening
-            sys.stdout.write(char)
-            sys.stdout.flush()
-
-            # check if hte line matches the subprocess prompt pattern
-            match = subprocess_prompt_pattern.search(buffer)
-            if match:
-                # Prompt the user for input back to the subprocess
-                user_input = input("\nInput> ")
-                process.stdin.write(user_input + "\n")
-                process.stdin.flush()
-
-                # Clear the buffer
-                buffer = ""
-
-        # Check for any errors
-        stderr = process.stderr.read()
-        if stderr:
-            print("Errors from subprocess:")
-            print(stderr.decode())
-
-        # Optionally wait for the process to end and get exit code
-        # return_code = process.wait()
-        # print(f"Subprocess finished with return code {return_code}")
 
 
 def analyze_responses(
