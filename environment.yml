@@ -18,6 +18,6 @@ dependencies:
   # - vega_datasets
   # - scipy
   # - scikit-learn
-  # - jupyterlab
+  - jupyterlab
   # - jupyter
   # - beautifulsoup4
