@@ -486,7 +486,7 @@ def chat_prompt(
 
     # close the OpenAI client session
     if prompt == "q":
-        OPENAI_CLIENT.close()
+        openai_client.close()
 
 
 def argument_parser():
