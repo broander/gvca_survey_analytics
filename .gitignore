@@ -8,3 +8,4 @@ gvca/
 logfile
 *.csv
 response_analysis_logs/
+*.out
