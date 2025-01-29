@@ -110,6 +110,7 @@ WHERE response ~* '^\s*(?:n.?a|nothing|none)\s*$'
   See if we can populate some of the "Same" open response values
  ******/
 -- Find a regex pattern that works, and filter out ones we don't want to change
+--TODO all hard coded respondent IDs need to be updated for 2025
 WITH manually_update_responses AS
          (
              SELECT DISTINCT respondent_id --, question_id, grammar, middle, high, whole_school, response

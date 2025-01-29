@@ -2,8 +2,9 @@
 --SET ROLE "gvcaadmin";
 
 --TODO make this not require editing every year
-CREATE SCHEMA sac_survey_2024;
-SET SCHEMA 'sac_survey_2024';
+-- TODO Update shema name to reflect the current year - DONE
+CREATE SCHEMA sac_survey_2025;
+SET SCHEMA 'sac_survey_2025';
 
 
 CREATE TABLE collectors
@@ -13,12 +14,12 @@ CREATE TABLE collectors
     collector_description TEXT,
     collector_created     TIMESTAMP
 );
-
+--TODO define 2025 collectors - DONE
 INSERT INTO collectors(collector_id, collector_description, collector_created)
-VALUES ('454577449', 'SAC Testing', '01/04/2024 09:29:00 AM'),
-       ('454577492', 'Dr Garrow Email', '01/04/2024 09:31:00 AM'),
-       ('454577519', 'Newsletters', '01/04/2024 09:33:00 AM'),
-       ('454577536', 'Other', '01/04/2024 09:34:00')
+VALUES ('433953488', 'QR Code', '12/2/2024 8:23:00 PM'),
+       ('434325359', 'Dr Garrow Emails', '1/6/2025 6:55:00 AM'),
+       ('434325371', 'Newsletter', '1/6/2025 6:55:00 AM'),
+       ('434325380', 'Other', '1/6/2025 6:56:00 AM')
 ;
 
 
@@ -49,7 +50,7 @@ CREATE TABLE questions
     question_text TEXT,
     mandatory     BOOLEAN
 );
-
+--TODO check 2025 questions for accuracy
 INSERT INTO questions (question_id, question_type, question_text, mandatory)
 VALUES (1, 'multiple choice', 'Choose a method of submission.', TRUE),
        (2, 'multiple choice', 'This academic year, in which grades are your children?', TRUE),
@@ -108,7 +109,7 @@ CREATE TABLE question_response_mapping
     CONSTRAINT question_response_mapping_pk
         PRIMARY KEY (question_id, response_value)
 );
-
+--TODO check 2025 response mappings for accuracy
 INSERT INTO question_response_mapping (question_id, response_value, response_text)
 VALUES (1, 1, 'Each parent or guardian will submit a separate survey, and we will submit two surveys.'),
        (1, 2, 'All parents and guardians will coordinate responses, and we will submit only one survey.'),
