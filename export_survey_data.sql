@@ -1,3 +1,4 @@
+SET search_path to sac_survey_2025;
 -- Response rate
 WITH given_num_families AS
          (
@@ -129,6 +130,7 @@ ORDER BY respondent_id, question_id, grammar DESC, middle DESC, high DESC
 ;
 
 -- response_open
+SET search_path to sac_survey_2025;
 WITH all_respondent_questions AS
          (
              SELECT respondent_id,
@@ -236,67 +238,5 @@ SELECT -- respondents
 FROM rank_questions
          JOIN
      duplicated_respondents USING (respondent_id)
-ORDER BY respondent_id, question_id, grade_level_for_response
-;
-
-
--- flattened respondent_rank_questions ****for 2022 only****
-WITH respondents_expanded AS
-         (
-             SELECT respondent_id,
-                    tenure = 1              AS new_family,
-                    minority,
-                    any_support,
-                    grammar_avg IS NOT NULL AS grammar_respondent,
-                    NULL                    AS middle_respondent,
-                    upper_avg IS NOT NULL   AS upper_respondent,
-                    overall_avg             AS avg_score
-             FROM gvca_survey.sac_survey_2022.respondents
-         ),
-     all_respondent_questions AS
-         (
-             SELECT respondent_id,
-                    question_id,
-                    question_text
-             FROM respondents_expanded
-                      CROSS JOIN
-                  sac_survey_2022.question
-             WHERE question_id < 9
-               AND question_id > 2
-         ),
-     rank_questions AS
-         (
-             SELECT respondent_id,
-                    question_id,
-                    question_text,
-                    CASE
-                        WHEN grammar THEN 'Grammar'
-                        WHEN upper THEN 'Upper'
-                        WHEN NOT grammar AND NOT upper AND question_id = 7
-                            THEN '"Grade level" not used for this question'
-                        END AS grade_level_for_response,
-                    response
-             FROM all_respondent_questions
-                      LEFT JOIN
-                  sac_survey_2022.question_rank USING (respondent_id, question_id)
-         )
-SELECT -- respondents
-       respondent_id,
-       new_family,
-       minority,
-       any_support,
-       grammar_respondent,
-       middle_respondent,
-       upper_respondent,
-       avg_score,
-
-       -- questions
-       question_id,
-       question_text,
-       grade_level_for_response,
-       response
-FROM rank_questions
-         JOIN
-     respondents_expanded USING (respondent_id)
 ORDER BY respondent_id, question_id, grade_level_for_response
 ;

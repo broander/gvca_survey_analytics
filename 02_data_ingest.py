@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, text
 
 from utilities import load_env_vars
 
+# TODO: Update the .env file with the correct file names for this year - DONE
 INPUT_FILEPATH, DATABASE_SCHEMA, DATABASE_CONNECTION_STRING = load_env_vars()
 
 

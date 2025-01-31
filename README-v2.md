@@ -6,10 +6,11 @@ Simple script to parse Survey Monkey results into a local database and perform a
    2. All Responses Data
    3. File Format: CSV
    4. Data View: Original View (No rules applied)
-   5. Columns: Expanded (I think?)
+   5. Columns: Condensed
    6. Cells: Actual Answer Text
 2. Set up the python environment using the requirements.txt file
 3. Set up a Postgres database (suggest Postgres.App for Mac users)
+	# TODO: update instructions to use the 00... script
 	- Assume have conda environment with conda-forge postgresql package installed
 	- Activate project environment
 	   - per this article: https://gist.github.com/gwangjinkim/f13bf596fefa7db7d31c22efd1627c7a
@@ -39,6 +40,7 @@ Simple script to parse Survey Monkey results into a local database and perform a
 4. Create a .env file in the root of this directory with the env vars required (see utilities.load_env_vars())
 5. Update the Python file with any changes to the survey.  This is harder than it seems, and probably harder than it needs to be.
 6. Execute the files in the order given; some on the database, some python scripts.
+	# TODO - update this to use the 00... script
 	- 01: if not run above already: 'psql -d gvca_survey -U gvcaadmin -f 01_build_database.sql'
 	- 02: 'python 02_data_ingest.py'
 	- 03: 'psql -d gvca_survey -U gvcaadmin -f 03_QA_Checks.sql'

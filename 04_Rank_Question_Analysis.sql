@@ -1,9 +1,9 @@
 /*
  Summary of ranked questions
  */
-
+-- TODO: Update schema name for the year of the survey
 -- Set search path to the survey schema
-SET search_path to sac_survey_2024;
+SET search_path to sac_survey_2025;
 
 WITH question_totals AS
          (
