@@ -1,5 +1,6 @@
 .ipynb_checkpoints
 # *.ipynb
+.ipynb_checkpoints/*
 .idea
 artifacts/
 .env
