@@ -25,7 +25,7 @@ from openai import OpenAI
 
 # specify the desired model to be used for the OpenAI API
 # see models here: https://platform.openai.com/docs/models
-OPENAI_MODEL_NAME = "o3-mini"
+OPENAI_MODEL_NAME = "o1-preview"
 
 # specify the OpenAI message stream default
 OPENAI_MSG_STREAM = True
@@ -50,26 +50,32 @@ OPENAI_MODELS_DICT = {
     "gpt-4o": {
         "name": "gpt-4o",
         "max_tokens": 128000,
+        "reasoning_effort": None,
     },
     "gpt-4o-mini": {
         "name": "gpt-4o-mini",
         "max_tokens": 128000,
+        "reasoning_effort": None,
     },
     "o1-preview": {
         "name": "o1-preview",
         "max_tokens": 128000,
+        "reasoning_effort": None,
     },
     "o1": {
         "name": "o1",
         "max_tokens": 200000,
+        "reasoning_effort": "medium",
     },
     "o1-mini": {
         "name": "o1-mini",
         "max_tokens": 128000,
+        "reasoning_effort": None,
     },
     "o3-mini": {
         "name": "o3-mini",
         "max_tokens": 200000,
+        "reasoning_effort": "medium",
     },
 }
 
@@ -100,6 +106,7 @@ def gpt_assistant(
     client=create_new_openai_client(),
     model_name="gpt-4o",
     stream=True,
+    reasoning_effort=None,
 ):
     """
     OpenAI Chatbot.  See API Reference here:
@@ -126,7 +133,7 @@ def gpt_assistant(
     # define the messages list based on the model name, as o1 doesn't support
     # the system prompt
     messages = []
-    if model_name in ["o1", "o1-preview", "o1-mini"]:
+    if model_name in ["o1", "o1-preview", "o1-mini", "o3-mini"]:
         if prompt_context:
             messages = [
                 {
@@ -170,20 +177,31 @@ def gpt_assistant(
     # call the OpenAI API to get the completion using the provided client
     # session
     try:
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=conversation,
-            stream=stream,
-            stream_options=stream_options,
-        )
+        if reasoning_effort:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=conversation,
+                stream=stream,
+                stream_options=stream_options,
+                reasoning_effort=reasoning_effort,
+            )
+        else:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=conversation,
+                stream=stream,
+                stream_options=stream_options,
+            )
+            # breakpoint()
     except RateLimitError as e:
         print(e)
         print("Rate limit exceeded.  Please try again later.")
+        # breakpoint()
         return
     except Exception as e:
         print(e)
         print("An error occurred.  Please try again later.")
-        return
+        raise e
 
     role = ""
     message_content = ""
@@ -434,6 +452,7 @@ def chat_prompt(
                 model_name=model["name"],
                 client=openai_client,
                 stream=stream,
+                reasoning_effort=model["reasoning_effort"],
             )
             # add prompt context to the message history
             if prompt_context:
