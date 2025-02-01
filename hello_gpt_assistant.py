@@ -25,7 +25,7 @@ from openai import OpenAI
 
 # specify the desired model to be used for the OpenAI API
 # see models here: https://platform.openai.com/docs/models
-OPENAI_MODEL_NAME = "o1-preview"
+OPENAI_MODEL_NAME = "o3-mini"
 
 # specify the OpenAI message stream default
 OPENAI_MSG_STREAM = True
@@ -66,6 +66,10 @@ OPENAI_MODELS_DICT = {
     "o1-mini": {
         "name": "o1-mini",
         "max_tokens": 128000,
+    },
+    "o3-mini": {
+        "name": "o3-mini",
+        "max_tokens": 200000,
     },
 }
 
@@ -636,7 +640,6 @@ def chat_subprocess(args_list):
         bufsize=0,
         text=True,
     ) as process:
-
         buffer = ""
 
         # Read the output in real-time
