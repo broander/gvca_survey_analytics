@@ -16,7 +16,7 @@ AI_SCRIPT_PATH = "./hello_gpt_assistant.py"
 
 # specify the desired model to be used for the OpenAI API
 # see models here: https://platform.openai.com/docs/models
-OPENAI_MODEL_NAME = "o1-preview"
+OPENAI_MODEL_NAME = "o3-mini"
 
 # specify the initial prompt context for the OpenAI API
 # prompt engineering best practices:
