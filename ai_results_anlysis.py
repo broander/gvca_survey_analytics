@@ -210,3 +210,34 @@ df_json = pd.DataFrame(json_data)
 
 # Display the new DataFrame
 df_json.head()
+
+# %%
+df_json["categories"] = df_json["categories"].apply(
+    lambda cats: ", ".join(cats) if isinstance(cats, list) else cats
+)
+display(df_json.head())
+
+
+# %%
+from sqlalchemy import create_engine, text
+
+from utilities import load_env_vars
+
+INPUT_FILEPATH, DATABASE_SCHEMA, DATABASE_CONNECTION_STRING = load_env_vars()
+
+# Create a SQLAlchemy engine using the connection string defined previously
+engine = create_engine(DATABASE_CONNECTION_STRING)
+
+# Load the entire DataFrame (df_json from cell 11) into a new table in the sac_survey_2025 schema.
+# Using the desired table name 'open_response_ai_categorization'
+df_json.to_sql(
+    name="open_response_ai_categorization",
+    con=engine,
+    schema="sac_survey_2025",
+    if_exists="replace",  # change to 'append' if you want to add to an existing table
+    index=False,
+)
+
+print(
+    "The full DataFrame has been successfully loaded into the sac_survey_2025.open_response_ai_categorization table."
+)

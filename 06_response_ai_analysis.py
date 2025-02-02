@@ -105,7 +105,44 @@ INPUT_FILEPATH, DATABASE_SCHEMA, DATABASE_CONNECTION_STRING = load_env_vars()
 
 # database query to get the open response data
 # DATABASE_QUERY = "SELECT respondent_id, response FROM question_open_responses;"
-DATABASE_QUERY = "SELECT respondent_id, response FROM question_open_responses;"
+DATABASE_QUERY = """
+WITH all_respondent_questions AS
+    (
+    SELECT
+        respondent_id,
+        question_id,
+        question_text
+    FROM
+        respondents
+        CROSS JOIN
+            questions
+    WHERE
+        question_type = 'open response'
+    AND NOT soft_delete
+    )
+SELECT
+    respondent_id,
+    question_id,
+    -- question_text,
+    CASE
+        WHEN grammar THEN 'Grammar'
+        WHEN middle THEN 'Middle'
+        WHEN high THEN 'High'
+        WHEN whole_school THEN 'Whole School'
+    END AS grade_level,
+    response
+FROM
+    all_respondent_questions
+    LEFT JOIN
+        question_open_responses USING (respondent_id, question_id)
+    ORDER BY
+        respondent_id,
+        question_id,
+        grammar DESC,
+        middle DESC,
+        high DESC,
+        whole_school DESC
+"""
 
 
 def query_database(database_connection_string, query, database_schema=None):

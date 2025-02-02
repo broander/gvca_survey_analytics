@@ -34,6 +34,7 @@ Simple script to parse Survey Monkey results into a local database and perform a
 		  \c - Connect to database
 		  \dn - List schemas
 		  \dt - List tables inside public schemas
+		  \d [table_name] - Describe a table
 		  \dt schema1.* - List tables inside a particular schema
 		  \q - Quit
 

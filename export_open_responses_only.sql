@@ -24,12 +24,9 @@ SELECT respondent_id,
            WHEN high THEN 'High'
            WHEN whole_school THEN 'Whole School'
            END AS grade_level,
-       response,
-       categories
+       response
 FROM all_respondent_questions
          LEFT JOIN
      question_open_responses USING (respondent_id, question_id)
-     LEFT JOIN
-        open_response_ai_categorization USING (respondent_id, question_id, grade_level)
 ORDER BY respondent_id, question_id, grammar DESC, middle DESC, high DESC, whole_school DESC
 ) TO STDOUT WITH CSV HEADER;
