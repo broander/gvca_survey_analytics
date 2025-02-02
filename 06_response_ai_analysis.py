@@ -22,6 +22,31 @@ OPENAI_MODEL_NAME = "o1-mini"
 # prompt engineering best practices:
 # https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-the-openai-api
 # prompt context for the open response analysis task
+# OPENAI_PROMPT_CONTEXT = """
+#     You are a skilled analyst with experience in survey and sentiment analysis.
+#     You have been asked to analyze the responses to an annual survey of parents
+#     of the students at a classical education focused charter school named Golden
+#     View Classical Academy.  The survey was conducted to gather feedback from
+#     the parents on the school's performance and to identify areas for focus by
+#     the school accountability committee to be shared with the school board and
+#     administration.  The survey responses you are getting are from the open
+#     response questions on the survey.  Your task is to analyze the responses and
+#     provide a summary of the key themes and areas of focus.  You should produce
+#     first a written summary of the key themes and areas of focus, and then
+#     second a list of 10-20 bullet point category names that capture the main
+#     themes shared in the open responses.
+#     \n
+#     In analyzing the responses, consider the following categories which showed
+#     up in survey results in past years and may be relevant to analyzing this
+#     years results.  If relevant, include these categories in your analysis and
+#     results.
+#     \n
+#     These categories to consider are: Concern, Curriculum, Good Outcomes,
+#     Policies & Administration, Teachers, Culture & Virtues, Wellbeing,
+#     Communication, Community, Extra-curriculars & Sports, Facilities, and
+#     Other.
+#     """
+
 OPENAI_PROMPT_CONTEXT = """
     You are a skilled analyst with experience in survey and sentiment analysis.
     You have been asked to analyze the responses to an annual survey of parents
@@ -30,11 +55,7 @@ OPENAI_PROMPT_CONTEXT = """
     the parents on the school's performance and to identify areas for focus by
     the school accountability committee to be shared with the school board and
     administration.  The survey responses you are getting are from the open
-    response questions on the survey.  Your task is to analyze the responses and
-    provide a summary of the key themes and areas of focus.  You should produce
-    first a written summary of the key themes and areas of focus, and then
-    second a list of 10-20 bullet point category names that capture the main
-    themes shared in the open responses.
+    response questions on the survey.
     \n
     In analyzing the responses, consider the following categories which showed
     up in survey results in past years and may be relevant to analyzing this
@@ -45,6 +66,12 @@ OPENAI_PROMPT_CONTEXT = """
     Policies & Administration, Teachers, Culture & Virtues, Wellbeing,
     Communication, Community, Extra-curriculars & Sports, Facilities, and
     Other.
+    \n
+    Return the results as a structured json output, maintaining the original
+    stucture but adding a new column to the results providing a list of comma
+    delimited categories that apply to each response.  Only use the categories
+    to consider provided above.  Only return the respondent_id and your
+    categorization, don't include the original response column in the output.
     """
 
 # specify optional prompt history file to load
@@ -78,7 +105,7 @@ INPUT_FILEPATH, DATABASE_SCHEMA, DATABASE_CONNECTION_STRING = load_env_vars()
 
 # database query to get the open response data
 # DATABASE_QUERY = "SELECT respondent_id, response FROM question_open_responses;"
-DATABASE_QUERY = "SELECT response FROM question_open_responses;"
+DATABASE_QUERY = "SELECT respondent_id, response FROM question_open_responses;"
 
 
 def query_database(database_connection_string, query, database_schema=None):
@@ -111,11 +138,13 @@ def analyze_responses(
 
     # get the open responses from the database
     open_responses = query_database(database_connection_string, query, schema)
+    # breakpoint()
 
     # Prepare the responses for submitting as first prompt
     prompt = "Here are the survey responses to analyze:\n"
     for response in open_responses:
-        prompt += f"- {response[0]}\n"
+        # prompt += f"- {response[0]}\n"
+        prompt += f"- {response}\n"
 
     # save the prompt to a file so can pass to the subprocess as an argument
     # to avoid issues with very long prompt data inputs
@@ -125,6 +154,7 @@ def analyze_responses(
     temp_prompt_file_path = temp_prompt_file_name
     temp_prompt_file_full_name = temp_prompt_file_path + ".txt"
     save_prompt_file(prompt, temp_prompt_file_path)
+    # breakpoint()
 
     # add the prompt file to the subprocess arguments
     subprocess_args.append("--prompt_file")
