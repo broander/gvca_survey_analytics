@@ -1,7 +1,7 @@
 -- Run this command to output to CSV:
 -- psql -d gvca_survey -U gvcaadmin -f export_open_responses.sql > open_responses.csv
 
-SET search_path TO sac_survey_2025;
+SET search_path TO sac_survey_2024;
 COPY (
 -- response_open
 WITH all_respondent_questions AS
