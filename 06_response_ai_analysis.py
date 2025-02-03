@@ -192,12 +192,6 @@ def analyze_responses(
         r"\d+\>\s": None,
     }
 
-    response_complete_patterns = [
-        # r"\d+\>\s*Waiting for the next prompt...",
-        # r"\s\}\s\]\s\"\"\"\s*",
-        r"\d+\>\s",
-        # r"Continuing\.\.\.",
-    ]
     # Create a list of regex patterns in the order you want them matched and add
     # to the front of the patterns dictionary
 
