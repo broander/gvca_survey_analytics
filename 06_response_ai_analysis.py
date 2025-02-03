@@ -272,9 +272,12 @@ def analyze_responses(
 
     # For every set of patterns leading to a save command, run through the AI
     # subprocess and send the appropriate responses
+    batch_counter = 0
+    total_batches = len(list_of_pattern_dicts)
 
     # loop for the entire process
     for patterns in list_of_pattern_dicts:
+        batch_counter += 1
         # set up the output file name so it hase a new timestamp for each batch
         # Output File Name global variable based on current date and time
         OUTPUT_FILE_NAME = TEST_RUN_NAME + datetime.datetime.now().strftime(
@@ -324,7 +327,9 @@ def analyze_responses(
                 triggered_pattern = regex_list[index]
                 response = patterns[triggered_pattern]
                 if triggered_pattern == r"1>\s":
-                    print(f"\n***Starting new batch***\n")
+                    print(
+                        f"\n*** Starting new batch: Batch {batch_counter} of {total_batches} ***\n"
+                    )
 
                 # Inform which pattern was triggered
                 logging.info(f"\n[Pattern matched: {triggered_pattern}]")
@@ -351,7 +356,7 @@ def analyze_responses(
                 # Continue waiting if nothing matched in the given timeout
                 logging.info("Timeout occurred. Continuing...")
                 continue
-    print("Process complete.  Check the output files for the results.")
+    print("*** Process complete.  Check the output files for the results. ***")
 
 
 def main():
