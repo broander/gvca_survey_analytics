@@ -16,7 +16,7 @@ from hello_gpt_assistant import (chat_subprocess, load_message_history,
 from utilities import load_env_vars
 
 # test run name
-TEST_RUN_NAME = "A3_test_run_"
+TEST_RUN_NAME = "B1_test_run_"
 
 # path to the hello_gpt_assistant.py script to call as a subprocess
 AI_SCRIPT_PATH = "./hello_gpt_assistant.py"
@@ -40,22 +40,23 @@ OPENAI_PROMPT_CONTEXT = """
     the school accountability committee to be shared with the school board and
     administration.  The survey responses you are getting are from the open
     response questions on the survey.
-    \n
+    \\n
+    \\n
     Only provide strict categorization using this list of categories, and use
-    no other cateogires:
-    - Concern
-    - Curriculum
-    - Good Outcomes
-    - Policies & Administration
-    - Teachers
-    - Culture & Virtues
-    - Wellbeing
-    - Communication
-    - Community
-    - Extra-curriculars & Sports
-    - Facilities
-    - Other
-    \n
+    no other categories:\\n
+    - Concern\\n
+    - Curriculum\\n
+    - Good Outcomes\\n
+    - Policies & Administration\\n
+    - Teachers\\n
+    - Culture & Virtues\\n
+    - Wellbeing\\n
+    - Communication\\n
+    - Community\\n
+    - Extra-curriculars & Sports\\n
+    - Facilities\\n
+    - Other\\n
+    \\n
     Return the results as a structured json output, maintaining the original
     stucture but adding a new column to the results providing a list of comma
     delimited categories that apply to each response.  With that, include
@@ -65,7 +66,9 @@ OPENAI_PROMPT_CONTEXT = """
     you have provided back, starting at 1, and continuing until you have
     provided the same number of responses as inputs that I gave you. This
     column should be named 'count'.
-    \n Do not abreviate your results, you need to provide a full response of
+    \\n
+    \\n
+    Do not abreviate your results, you need to provide a full response of
     every input entry back with the categorizations added.  Don't provide
     anything but json back as your response.  The count of json entries you
     provide as output must match the count of input survey responses I give
@@ -73,10 +76,13 @@ OPENAI_PROMPT_CONTEXT = """
     also all be the same in the output.  If you hallucinate new values for
     these, you will be penalized.  You have 128k tokens to use, so keep going
     in providing responses and don't give up with an abreviated response.
-    \n
-    """.replace(
-    "\n", " "
-)
+    \\n
+    """
+OPENAI_PROMPT_CONTEXT = " ".join(
+    OPENAI_PROMPT_CONTEXT.replace("\n", " ").split()
+).replace("\\n", "\n")
+# breakpoint()
+
 # In your response, combine respondent_id, question_id, and grade_level into a comma-deliminted compound key called "key".
 
 # - Now check and ensure that the number of json entries you provided as output is the same as the number of rows of input I gave you.  Tell me the count of both in your response.
@@ -160,8 +166,6 @@ def analyze_responses(
     When a pre-defined pattern is matched, send the corresponding input.
     If a pattern's input is None, prompt the user for manual input.
     """
-    ### prompt engineering pipeline:
-
     ### 1. build response data to submit to the AI prompt
 
     # get the open responses from the database
@@ -205,13 +209,15 @@ def analyze_responses(
         # add a pattern telling the prompt what to do at the start of a chunk
         if counter == 0:
             counter += 1
+            direction_string = f"""I will give you the response data in chunks
+            of {chunk_size}. There will be {batch_size} total responses
+            provided to process. You should return a count of {chunk_size}
+            dicts for each set of responses.""".replace(
+                "\n", " "
+            ).strip()
+            direction_string = " ".join(direction_string.split())
             patterns = {
-                "1>\s": f"""I will give you the response data in chunks of
-                {chunk_size}. There will be {batch_size} total responses
-                provided to process. You should return a count of {chunk_size}
-                dicts for each set of responses.""".replace(
-                    "\n", " "
-                ),
+                "1>\s": direction_string,
                 **patterns,
             }
 
@@ -239,15 +245,6 @@ def analyze_responses(
     # reset for the last dict of pattern entries
     counter = 0
     patterns = initial_patterns.copy()
-    # ask the AI to check that the total number of responses returned matches
-    # the total number of responses provided
-    counter += 1
-    patterns = {
-        f"{counter}>\s": """Check that the number of responses you provided
-        matches the number of input tuples you were given""".replace("\n", "
-                                                                     "),
-        **patterns,
-    }
     # add the final save command to the last pattern dictionary
     counter += 1
     patterns = {f"{counter}>\s": "s", **patterns}
