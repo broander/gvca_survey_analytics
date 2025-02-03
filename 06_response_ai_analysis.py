@@ -16,7 +16,7 @@ from hello_gpt_assistant import (chat_subprocess, load_message_history,
 from utilities import load_env_vars
 
 # test run name
-TEST_RUN_NAME = "B1_test_run_"
+RUN_NAME = "FINAL_DATA_RUN_02_"  # for output file names
 
 # path to the hello_gpt_assistant.py script to call as a subprocess
 AI_SCRIPT_PATH = "./hello_gpt_assistant.py"
@@ -286,7 +286,7 @@ def analyze_responses(
         batch_counter += 1
         # set up the output file name so it hase a new timestamp for each batch
         # Output File Name global variable based on current date and time
-        OUTPUT_FILE_NAME = TEST_RUN_NAME + datetime.datetime.now().strftime(
+        OUTPUT_FILE_NAME = RUN_NAME + datetime.datetime.now().strftime(
             "%Y-%m-%d_%H-%M-%S" + "_ai_response_analysis"
         )
         # set up the subprocess arguments so they have the correct output file
