@@ -16,7 +16,7 @@ from hello_gpt_assistant import (chat_subprocess, load_message_history,
 from utilities import load_env_vars
 
 # test run name
-TEST_RUN_NAME = "A2_test_run_"
+TEST_RUN_NAME = "A3_test_run_"
 
 # path to the hello_gpt_assistant.py script to call as a subprocess
 AI_SCRIPT_PATH = "./hello_gpt_assistant.py"
