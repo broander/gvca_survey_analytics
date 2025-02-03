@@ -170,6 +170,7 @@ def analyze_responses(
     # Adjust the keys (regex) and values as needed.
     # For auto-trigger strings, provide an automatic response.
     # For manual input, set the value to None.
+    # remembers commands like "s" don't advance the prompt number
     initial_patterns = {
         # r"1>\s": "Stuff to send prompt",  # catch first prompt
         # catch-all prompt ending with a number and ">" for manual input
@@ -221,6 +222,8 @@ def analyze_responses(
             print(f"\nSaving batch of i = {i}\n")
             # first add a save command
             counter += 1
+            # remembers commands like "s" don't advance the prompt number
+            # so it needs to be the last pattern defined in the batch
             patterns = {f"{counter}>\s": "s", **patterns}
             # now save the pattern dictionary to the list
             list_of_pattern_dicts.append(patterns)
