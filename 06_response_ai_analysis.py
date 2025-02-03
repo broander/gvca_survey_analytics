@@ -165,7 +165,7 @@ def analyze_responses(
     #   respondent_id, question_id, question_text, grade_level, and response
     open_responses = query_database(database_connection_string, query, schema)
 
-    ### 2. Define the patterns and the responses
+    ### 2. Define the patterns and the responses for automating the AI subprocess
 
     # Adjust the keys (regex) and values as needed.
     # For auto-trigger strings, provide an automatic response.
@@ -246,7 +246,7 @@ def analyze_responses(
     print(f"\nSaving final batch of close-out commands\n")
     list_of_pattern_dicts.append(patterns)
 
-    ### 3. Spawn the subprocess and monitor its output
+    ### 3. Spawn the subprocess and feed it batches of responses until completion
 
     # set up logging
 
