@@ -5,10 +5,7 @@ Access chatgpt from the cli and analyze open response data
 import datetime
 import logging
 import re
-import signal
-import subprocess
 import sys
-import threading
 
 import pexpect
 from sqlalchemy import create_engine, text
@@ -22,8 +19,8 @@ AI_SCRIPT_PATH = "./hello_gpt_assistant.py"
 
 # specify the desired model to be used for the OpenAI API
 # see models here: https://platform.openai.com/docs/models
-# OPENAI_MODEL_NAME = "o1-mini"
-OPENAI_MODEL_NAME = "gpt-4o"
+OPENAI_MODEL_NAME = "o1-mini"
+# OPENAI_MODEL_NAME = "gpt-4o"
 
 # specify the initial prompt context for the OpenAI API
 # prompt engineering best practices:
@@ -57,10 +54,7 @@ OPENAI_PROMPT_CONTEXT = """
     \n
     Return the results as a structured json output, maintaining the original
     stucture but adding a new column to the results providing a list of comma
-    delimited categories that apply to each response.  In your response,
-    combine respondent_id, question_id, and grade_level into a
-    comma-deliminted compound key called "key".  With that, include categorization,
-    and don't include the original response column or the question text column in
+    delimited categories that apply to each response.  With that, include categorization, and don't include the original response column or the question text column in
     your json response.  Add an additional column to the json output as the
     first column which counts the number of responses you have provided back,
     starting at 1, and continuing until you have provided the same number of
@@ -75,6 +69,7 @@ OPENAI_PROMPT_CONTEXT = """
     in providing responses and don't give up with an abreviated response.
     \n
    """
+# In your response, combine respondent_id, question_id, and grade_level into a comma-deliminted compound key called "key".
 
 # - Now check and ensure that the number of json entries you provided as output is the same as the number of rows of input I gave you.  Tell me the count of both in your response.
 # - Now check that the respondent IDs from the input are also all the same in the output and there are no new ones you hallucinated.
@@ -177,48 +172,105 @@ def analyze_responses(
     When a pre-defined pattern is matched, send the corresponding input.
     If a pattern's input is None, prompt the user for manual input.
     """
-    # prompt engineering pipeline:
+    ### prompt engineering pipeline:
 
-    # 1. build response data to submit to the AI prompt
+    ### 1. build response data to submit to the AI prompt
 
     # get the open responses from the database
     # is a list of tuples with:
     #   respondent_id, question_id, question_text, grade_level, and response
     open_responses = query_database(database_connection_string, query, schema)
 
-    # Define the patterns and the responses
+    ### 2. Define the patterns and the responses
+
     # Adjust the keys (regex) and values as needed.
     # For auto-trigger strings, provide an automatic response.
     # For manual input, set the value to None.
     patterns = {
-        r"1>\s*": "What year did hank aaron break the record?",
-        r"2>\s*": "How old was he?",
-        r"3>\s*": "What year did he enter the hall of fame?",
+        # r"1>\s": "Stuff to send prompt",  # catch first prompt
         # catch-all prompt ending with a number and ">" for manual input
-        r"\d+\>\s*$": None,
+        r"\d+\>\s": None,
+    }
+
+    response_complete_patterns = [
+        # r"\d+\>\s*Waiting for the next prompt...",
+        # r"\s\}\s\]\s\"\"\"\s*",
+        r"\d+\>\s",
+        # r"Continuing\.\.\.",
+    ]
+    # Create a list of regex patterns in the order you want them matched and add
+    # to the front of the patterns dictionary
+
+    # counter to track adding prompt entries to the pattern dictionary
+    counter = 0
+
+    # Process the open_responses in chunks to avoid overwhelming the AI
+    chunk_size = 25
+    print(f"Total Count of Responses to Process: {len(open_responses)}")
+    # tell the ai to expect responses in chunks, and how many total it will recieve
+    counter += 1
+    patterns = {
+        "1>\s": f"I will give you the response data in chunks of {chunk_size}. There will be {len(open_responses)} total responses provided to process",
+        **patterns,
+    }
+
+    # process the open_responses in chunks of 50 and add chunks to the pattern
+    # dictionary
+    for i in range(0, len(open_responses), chunk_size):
+        counter += 1
+        # print(f"Processing chunk {i + 1} to {i + chunk_size} of {len(open_responses)}")
+        chunk = open_responses[i : i + chunk_size]
+        # add a chunk to the pattern dictionary
+        patterns = {f"{counter}>\s": str(chunk), **patterns}
+
+    # now add another entry to save the results
+    counter += 1
+    patterns = {f"{counter}>\s": "s", **patterns}
+
+    # ask the AI to check that the total number of responses returned matches
+    # the total number of responses provided
+    counter += 1
+    patterns = {
+        f"{counter}>\s": "Check that the number of responses you provided matches the number of input tuples you were given",
+        **patterns,
     }
 
     # Create a list of regex patterns in the order you want them matched.
     regex_list = list(patterns.keys())
 
+    ### 3. Spawn the subprocess and monitor its output
+    # set up logging
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        filename="output.log",
+        filemode="w",
+    )
+
     # Spawn the subprocess using the same Python interpreter.
     # Buffer output will be written to sys.stdout so you can see progress in real time.
-    child = pexpect.spawn(sys.executable, [AI_SCRIPT_PATH], encoding="utf-8")
+    # child = pexpect.spawn(sys.executable, [AI_SCRIPT_PATH], encoding="utf-8")
+    child = pexpect.spawn(
+        subprocess_args[0], encoding="utf-8", args=subprocess_args[1:]
+    )
     # child.logfile = sys.stdout   # show input and output
     child.logfile_read = sys.stdout  # show only output to avoid duplication
+
+    # define timeout for the expect function
+    timeout = 60
 
     while True:
         try:
             # Wait for one of the patterns to appear
-            index = child.expect(regex_list, timeout=60)
+            index = child.expect(regex_list, timeout=timeout)
             triggered_pattern = regex_list[index]
             response = patterns[triggered_pattern]
 
             # Inform which pattern was triggered
-            print(f"\n[Pattern matched: {triggered_pattern}]")
+            logging.info(f"\n[Pattern matched: {triggered_pattern}]")
 
             if response is not None:
-                # print(f"Automatically sending: {response}\n")
                 print(f"***Automatically sending***:\n")
                 child.sendline(response)
             else:
@@ -227,47 +279,15 @@ def analyze_responses(
                 manual_input = input("Input> ")
                 child.sendline(manual_input + "\n")
         except pexpect.EOF:
-            print("Subprocess ended (EOF received).")
+            logging.info("Subprocess ended (EOF received).")
             break
         except pexpect.TIMEOUT:
             # Continue waiting if nothing matched in the given timeout
+            logging.info("Timeout occurred. Continuing...")
             continue
 
-
-#                 # Work the data through the prompt in chunks of 50 tuples
-#                 logging.info(
-#                     f"Total Count of Responses to Process: {len(open_responses)}"
-#                 )
-#                 for i in range(0, len(open_responses), 50):
-#                     logging.info(
-#                         f"Processing chunk {i + 1} to {i + 50} of {len(open_responses)}"
-#                     )
-#                     # time.sleep(5)
-#                     # get the chunk of responses
-#                     chunk = open_responses[i : i + 50]
-#                     # prepare the chunk as a string
-#                     chunk_str = str(chunk)
-#                     # send the chunk to the AI
-#                     child.sendline(chunk_str)
-#                     # print the subprocess interaction
-#                     read_and_print_characters(child)
-#                     # read the AI response
-#                     print(child.read().decode())
-#                 # Send "s" to the prompt to save the results
-#                 child.sendline("s")
-
-# 3. call the chatgpt subprocess to analyze the responses, using the
-# prompt context provided as a global variable and taking the responses
-# chat_subprocess(subprocess_args)
-
-# 4. Continue to chat with the AI to refine the analysis and save the
-# results to a file for later use
-
-# cleanup the temporary prompt file
-# subprocess.run(
-#     ["rm", temp_prompt_file_full_name],
-#     check=True,
-# )
+    ### 4. Continue to chat with the AI to refine the analysis and save the
+    # results to a file for later use
 
 
 def main():
