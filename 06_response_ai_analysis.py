@@ -58,11 +58,13 @@ OPENAI_PROMPT_CONTEXT = """
     \n
     Return the results as a structured json output, maintaining the original
     stucture but adding a new column to the results providing a list of comma
-    delimited categories that apply to each response.  With that, include categorization, and don't include the original response column or the question text column in
-    your json response.  Add an additional column to the json output as the
-    first column which counts the number of responses you have provided back,
-    starting at 1, and continuing until you have provided the same number of
-    responses as inputs that I gave you.  This column should be named 'count'.
+    delimited categories that apply to each response.  With that, include
+    categorization, and don't include the original response column or the
+    question text column in your json response.  Add an additional column to
+    the json output as the first column which counts the number of responses
+    you have provided back, starting at 1, and continuing until you have
+    provided the same number of responses as inputs that I gave you. This
+    column should be named 'count'.
     \n Do not abreviate your results, you need to provide a full response of
     every input entry back with the categorizations added.  Don't provide
     anything but json back as your response.  The count of json entries you
@@ -72,7 +74,9 @@ OPENAI_PROMPT_CONTEXT = """
     these, you will be penalized.  You have 128k tokens to use, so keep going
     in providing responses and don't give up with an abreviated response.
     \n
-   """
+    """.replace(
+    "\n", " "
+)
 # In your response, combine respondent_id, question_id, and grade_level into a comma-deliminted compound key called "key".
 
 # - Now check and ensure that the number of json entries you provided as output is the same as the number of rows of input I gave you.  Tell me the count of both in your response.
@@ -239,7 +243,9 @@ def analyze_responses(
     # the total number of responses provided
     counter += 1
     patterns = {
-        f"{counter}>\s": "Check that the number of responses you provided matches the number of input tuples you were given",
+        f"{counter}>\s": """Check that the number of responses you provided
+        matches the number of input tuples you were given""".replace("\n", "
+                                                                     "),
         **patterns,
     }
     # add the final save command to the last pattern dictionary
