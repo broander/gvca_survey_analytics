@@ -353,9 +353,6 @@ def analyze_responses(
                 continue
     print("Process complete.  Check the output files for the results.")
 
-    ### 4. Continue to chat with the AI to refine the analysis and save the
-    # results to a file for later use
-
 
 def main():
     """
