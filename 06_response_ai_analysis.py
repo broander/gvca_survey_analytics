@@ -6,6 +6,7 @@ import datetime
 import logging
 import re
 import sys
+import time
 
 import pexpect
 from sqlalchemy import create_engine, text
@@ -13,6 +14,9 @@ from sqlalchemy import create_engine, text
 from hello_gpt_assistant import (chat_subprocess, load_message_history,
                                  save_prompt_file)
 from utilities import load_env_vars
+
+# test run name
+TEST_RUN_NAME = "A2_test_run_"
 
 # path to the hello_gpt_assistant.py script to call as a subprocess
 AI_SCRIPT_PATH = "./hello_gpt_assistant.py"
@@ -80,25 +84,6 @@ HISTORY_FILE_NAME = ""
 
 # Output Files Location
 OUTPUT_FILES_LOCATION = "./response_analysis_logs/"
-# Output File Name global variable based on current date and time
-OUTPUT_FILE_NAME = datetime.datetime.now().strftime(
-    "%Y-%m-%d_%H-%M-%S" + "_ai_response_analysis"
-)
-
-CHAT_SUBPROCESS_ARGS = [
-    "python",
-    AI_SCRIPT_PATH,
-    "--model",
-    OPENAI_MODEL_NAME,
-    "--context",
-    OPENAI_PROMPT_CONTEXT,
-    # "--history",
-    # HISTORY_FILE_NAME,
-    "--file",
-    OUTPUT_FILE_NAME,
-    "--location",
-    OUTPUT_FILES_LOCATION,
-]
 
 # load environment variables from .env file
 INPUT_FILEPATH, DATABASE_SCHEMA, DATABASE_CONNECTION_STRING = load_env_vars()
@@ -163,7 +148,6 @@ def analyze_responses(
     database_connection_string=DATABASE_CONNECTION_STRING,
     query=DATABASE_QUERY,
     schema=DATABASE_SCHEMA,
-    subprocess_args=CHAT_SUBPROCESS_ARGS,
 ):
     """
     Analyze the open responses using the OpenAI API
@@ -186,41 +170,68 @@ def analyze_responses(
     # Adjust the keys (regex) and values as needed.
     # For auto-trigger strings, provide an automatic response.
     # For manual input, set the value to None.
-    patterns = {
+    initial_patterns = {
         # r"1>\s": "Stuff to send prompt",  # catch first prompt
         # catch-all prompt ending with a number and ">" for manual input
         r"\d+\>\s": None,
     }
 
+    list_of_pattern_dicts = []
+
     # Create a list of regex patterns in the order you want them matched and add
     # to the front of the patterns dictionary
 
-    # counter to track adding prompt entries to the pattern dictionary
-    counter = 0
-
     # Process the open_responses in chunks to avoid overwhelming the AI
-    chunk_size = 25
+    chunk_size = 20
     print(f"Total Count of Responses to Process: {len(open_responses)}")
-    # tell the ai to expect responses in chunks, and how many total it will recieve
-    counter += 1
-    patterns = {
-        "1>\s": f"I will give you the response data in chunks of {chunk_size}. There will be {len(open_responses)} total responses provided to process",
-        **patterns,
-    }
+    # batch sizes are 5 chunks
+    batch_size = 5 * chunk_size
 
-    # process the open_responses in chunks of 50 and add chunks to the pattern
+    # initialize for first batch
+    counter = 0
+    patterns = initial_patterns.copy()
+
+    # process the open_responses in chunks and add batches of chunks to the pattern
     # dictionary
     for i in range(0, len(open_responses), chunk_size):
-        counter += 1
+        print(
+            f"\ni:{i} | counter:{counter}\n | (i + chunk_size) % (batch_size):{(i + chunk_size) % batch_size}\n"
+        )
+        # add a pattern telling the prompt what to do at the start of a chunk
+        if counter == 0:
+            counter += 1
+            patterns = {
+                "1>\s": f"""I will give you the response data in chunks of
+                {chunk_size}. There will be {batch_size} total responses
+                provided to process. You should return a count of {chunk_size}
+                dicts for each set of responses.""".replace(
+                    "\n", " "
+                ),
+                **patterns,
+            }
+
         # print(f"Processing chunk {i + 1} to {i + chunk_size} of {len(open_responses)}")
         chunk = open_responses[i : i + chunk_size]
         # add a chunk to the pattern dictionary
+        counter += 1
         patterns = {f"{counter}>\s": str(chunk), **patterns}
+        # print(chunk)
+        # save the pattern dictionary to a list for every batch of chunks
+        if i != 0 and (i + chunk_size) % batch_size == 0:
+            print(f"\nSaving batch of i = {i}\n")
+            # first add a save command
+            counter += 1
+            patterns = {f"{counter}>\s": "s", **patterns}
+            # now save the pattern dictionary to the list
+            list_of_pattern_dicts.append(patterns)
+            # reset for next batch
+            counter = 0
+            patterns = initial_patterns.copy()
+            # breakpoint()
 
-    # now add another entry to save the results
-    counter += 1
-    patterns = {f"{counter}>\s": "s", **patterns}
-
+    # reset for the last dict of pattern entries
+    counter = 0
+    patterns = initial_patterns.copy()
     # ask the AI to check that the total number of responses returned matches
     # the total number of responses provided
     counter += 1
@@ -228,12 +239,29 @@ def analyze_responses(
         f"{counter}>\s": "Check that the number of responses you provided matches the number of input tuples you were given",
         **patterns,
     }
-
-    # Create a list of regex patterns in the order you want them matched.
-    regex_list = list(patterns.keys())
+    # add the final save command to the last pattern dictionary
+    counter += 1
+    patterns = {f"{counter}>\s": "s", **patterns}
+    # add the final pattern dictionary to the list
+    print(f"\nSaving final batch of close-out commands\n")
+    list_of_pattern_dicts.append(patterns)
 
     ### 3. Spawn the subprocess and monitor its output
+
     # set up logging
+
+    # Function to log the output of the child process
+    def log_child_output(child):
+        while True:
+            try:
+                line = child.readline()
+                if line:
+                    logging.info(line.strip())
+                else:
+                    break
+            except pexpect.EOF:
+                break
+
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,
@@ -242,43 +270,88 @@ def analyze_responses(
         filemode="w",
     )
 
-    # Spawn the subprocess using the same Python interpreter.
-    # Buffer output will be written to sys.stdout so you can see progress in real time.
-    # child = pexpect.spawn(sys.executable, [AI_SCRIPT_PATH], encoding="utf-8")
-    child = pexpect.spawn(
-        subprocess_args[0], encoding="utf-8", args=subprocess_args[1:]
-    )
-    # child.logfile = sys.stdout   # show input and output
-    child.logfile_read = sys.stdout  # show only output to avoid duplication
+    # For every set of patterns leading to a save command, run through the AI
+    # subprocess and send the appropriate responses
 
-    # define timeout for the expect function
-    timeout = 60
+    # loop for the entire process
+    for patterns in list_of_pattern_dicts:
+        # set up the output file name so it hase a new timestamp for each batch
+        # Output File Name global variable based on current date and time
+        OUTPUT_FILE_NAME = TEST_RUN_NAME + datetime.datetime.now().strftime(
+            "%Y-%m-%d_%H-%M-%S" + "_ai_response_analysis"
+        )
+        # set up the subprocess arguments so they have the correct output file
+        # name
+        CHAT_SUBPROCESS_ARGS = [
+            "python",
+            AI_SCRIPT_PATH,
+            "--model",
+            OPENAI_MODEL_NAME,
+            "--context",
+            OPENAI_PROMPT_CONTEXT,
+            # "--history",
+            # HISTORY_FILE_NAME,
+            "--file",
+            OUTPUT_FILE_NAME,
+            "--location",
+            OUTPUT_FILES_LOCATION,
+        ]
+        subprocess_args = CHAT_SUBPROCESS_ARGS
 
-    while True:
-        try:
-            # Wait for one of the patterns to appear
-            index = child.expect(regex_list, timeout=timeout)
-            triggered_pattern = regex_list[index]
-            response = patterns[triggered_pattern]
+        # Create a list of regex patterns in the order you want them matched.
+        regex_list = list(patterns.keys())
+        # breakpoint()
 
-            # Inform which pattern was triggered
-            logging.info(f"\n[Pattern matched: {triggered_pattern}]")
+        # Spawn the subprocess using the same Python interpreter.
+        # Buffer output will be written to sys.stdout so you can see progress in real time.
+        # child = pexpect.spawn(sys.executable, [AI_SCRIPT_PATH], encoding="utf-8")
+        child = pexpect.spawn(
+            subprocess_args[0], encoding="utf-8", args=subprocess_args[1:]
+        )
+        # child.logfile = sys.stdout   # show input and output
+        child.logfile_read = (
+            sys.stdout
+        )  # show only output to avoid duplication
 
-            if response is not None:
-                print(f"***Automatically sending***:\n")
-                child.sendline(response)
-            else:
-                # No auto-response defined: get manual input from user
-                # Requires accurate r"foobar": None pattern to be defined
-                manual_input = input("Input> ")
-                child.sendline(manual_input + "\n")
-        except pexpect.EOF:
-            logging.info("Subprocess ended (EOF received).")
-            break
-        except pexpect.TIMEOUT:
-            # Continue waiting if nothing matched in the given timeout
-            logging.info("Timeout occurred. Continuing...")
-            continue
+        # define timeout for the expect function
+        timeout = 60
+
+        # loop for each pattern group with a save
+        while True:
+            try:
+                # Wait for one of the patterns to appear
+                index = child.expect(regex_list, timeout=timeout)
+                triggered_pattern = regex_list[index]
+                response = patterns[triggered_pattern]
+                if triggered_pattern == r"1>\s":
+                    print(f"\n***Starting new batch***\n")
+
+                # Inform which pattern was triggered
+                logging.info(f"\n[Pattern matched: {triggered_pattern}]")
+
+                if response is not None:
+                    print(f"***Automatically sending***:\n")
+                    child.sendline(response)
+                    # when get to a prompt counter that is a save command, save and
+                    # terminate the process
+                    if response == "s":
+                        time.sleep(3)
+                        child.terminate()
+                        break
+                else:
+                    # No auto-response defined: get manual input from user
+                    # Requires accurate r"foobar": None pattern to be defined
+                    manual_input = input("Input> ")
+                    child.sendline(manual_input + "\n")
+                log_child_output(child)
+            except pexpect.EOF:
+                logging.info("Subprocess ended (EOF received).")
+                break
+            except pexpect.TIMEOUT:
+                # Continue waiting if nothing matched in the given timeout
+                logging.info("Timeout occurred. Continuing...")
+                continue
+    print("Process complete.  Check the output files for the results.")
 
     ### 4. Continue to chat with the AI to refine the analysis and save the
     # results to a file for later use
