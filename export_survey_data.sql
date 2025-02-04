@@ -8,10 +8,10 @@ WITH given_num_families AS
              FROM (
                       -- Fill these in based on values from the front office.
                       -- Note that the name given in the second value must match what's in the `base` CTE.
-                      VALUES (408, 'total'),
-                             (NULL, 'grammar'),
-                             (NULL, 'middle'),
-                             (NULL, 'high')
+                      VALUES (397, 'total'),
+                             (428, 'grammar'),
+                             (124, 'middle'),
+                             (176, 'high')
                   ) AS provided_by_front_office
          ),
      base AS
