@@ -219,7 +219,7 @@ WITH duplicated_respondents AS
                       LEFT JOIN
                   question_response_mapping USING (question_id, response_value)
          )
-COPY (SELECT
+SELECT
 		-- respondents
        respondent_id,
        new_family,
@@ -239,4 +239,4 @@ COPY (SELECT
 FROM rank_questions
          JOIN
      duplicated_respondents USING (respondent_id)
-ORDER BY respondent_id, question_id, grade_level_for_response) TO STDOUT WITH CSV HEADER;
+ORDER BY respondent_id, question_id, grade_level_for_response;
