@@ -6,13 +6,48 @@ Simple script to parse Survey Monkey results into a local database and perform a
    2. All Responses Data
    3. File Format: CSV
    4. Data View: Original View (No rules applied)
-   5. Columns: Expanded (I think?)
+   5. Columns: Condensed
    6. Cells: Actual Answer Text
 2. Set up the python environment using the requirements.txt file
 3. Set up a Postgres database (suggest Postgres.App for Mac users)
+	# TODO: update instructions to use the 00... script
+	- Assume have conda environment with conda-forge postgresql package installed
+	- Activate project environment
+	   - per this article: https://gist.github.com/gwangjinkim/f13bf596fefa7db7d31c22efd1627c7a
+	- Create a new database; only necessary once to create db
+		- 'initdb -D gvca'
+	- Start the server; necessary every time container is restarted
+		- 'pg_ctl -D gvca -l logfile start'
+	- Create a new user
+		- 'createuser --encrypted --pwprompt gvcaadmin' --provide username dbadmin and pword
+	- Create a new database
+		- 'createdb --owner=mynonsuperuser gvca_survey'
+	- Create a new database from .sql file
+		- 'psql -d gvca_survey -U gvcaadmin -f 01_build_database.sql'
+
+	- Connect to the server:
+		'psql gvca_survey -U gvcaadmin'
+	- Convenient psql commands:
+		  'SET search_path TO <schema_name>;' - Set the schema to use
+		  'SHOW search_path;' - Show the current schema
+		  \l - Display database
+		  \c - Connect to database
+		  \dn - List schemas
+		  \dt - List tables inside public schemas
+		  \d [table_name] - Describe a table
+		  \dt schema1.* - List tables inside a particular schema
+		  \q - Quit
+
 4. Create a .env file in the root of this directory with the env vars required (see utilities.load_env_vars())
 5. Update the Python file with any changes to the survey.  This is harder than it seems, and probably harder than it needs to be.
 6. Execute the files in the order given; some on the database, some python scripts.
+	# TODO - update this to use the 00... script
+	- 01: if not run above already: 'psql -d gvca_survey -U gvcaadmin -f 01_build_database.sql'
+	- 02: 'python 02_data_ingest.py'
+	- 03: 'psql -d gvca_survey -U gvcaadmin -f 03_QA_Checks.sql'
+	   - TODO: Schema name is hardcoded into this sql file right now
+	- 04: 'psql -d gvca_survey -U gvcaadmin -f 04_Rank_Question_Analysis.sql'
+	   - TODO: Schema name is hardcoded into this sql file right now
 7. Fix any problems in the scripts
 8. Commit your changes and push them back up to the remote git repository
 9. Create a release in Github for the current year, so we can rerun prior history if needed.
