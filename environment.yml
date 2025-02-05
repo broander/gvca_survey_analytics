@@ -21,3 +21,4 @@ dependencies:
   - jupyterlab
   # - jupyter
   # - beautifulsoup4
+  - openpyxl
