@@ -11,3 +11,4 @@ logfile
 response_analysis_logs/
 *.out
 temp_*
+.mypy_cache/
