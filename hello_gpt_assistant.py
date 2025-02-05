@@ -133,7 +133,17 @@ def gpt_assistant(
     # define the messages list based on the model name, as o1 doesn't support
     # the system prompt
     messages = []
-    if model_name in ["o1", "o1-preview", "o1-mini", "o3-mini"]:
+    if model_name in ["gpt-4o", "gpt-4o-mini"]:
+        if prompt_context:
+            messages = [
+                {"role": "system", "content": prompt_context},
+            ]
+        messages.extend(
+            [
+                {"role": "user", "content": prompt},
+            ]
+        )
+    else:
         if prompt_context:
             messages = [
                 {
@@ -151,16 +161,6 @@ def gpt_assistant(
                         {"type": "text", "text": prompt},
                     ],
                 },
-            ]
-        )
-    else:
-        if prompt_context:
-            messages = [
-                {"role": "system", "content": prompt_context},
-            ]
-        messages.extend(
-            [
-                {"role": "user", "content": prompt},
             ]
         )
     # add the message history to the messages list
