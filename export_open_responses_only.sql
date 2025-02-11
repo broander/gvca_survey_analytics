@@ -8,7 +8,8 @@ WITH all_respondent_questions AS
          (
              SELECT respondent_id,
                     question_id,
-                    question_text
+                    question_text,
+                    num_individuals_in_response,
              FROM respondents
                       CROSS JOIN
                   questions
@@ -18,6 +19,7 @@ WITH all_respondent_questions AS
 SELECT respondent_id,
        question_id,
        question_text,
+       num_individuals_in_response,
        CASE
            WHEN grammar THEN 'Grammar'
            WHEN middle THEN 'Middle'

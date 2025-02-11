@@ -135,7 +135,8 @@ WITH all_respondent_questions AS
          (
              SELECT respondent_id,
                     question_id,
-                    question_text
+                    question_text,
+                    num_individuals_in_response
              FROM respondents
                       CROSS JOIN
                   questions
@@ -145,6 +146,7 @@ WITH all_respondent_questions AS
 SELECT respondent_id,
        question_id,
        question_text,
+       num_individuals_in_response,
        CASE
            WHEN grammar THEN 'Grammar'
            WHEN middle THEN 'Middle'
@@ -170,7 +172,8 @@ WITH duplicated_respondents AS
                     middle_avg IS NOT NULL  AS middle_respondent,
                     high_avg IS NOT NULL    AS high_respondent,
                     overall_avg             AS avg_score,
-                    soft_delete
+                    soft_delete,
+                    num_individuals_in_response
              FROM respondents
              WHERE NOT soft_delete
 
@@ -185,7 +188,8 @@ WITH duplicated_respondents AS
                     middle_avg IS NOT NULL  AS middle_respondent,
                     high_avg IS NOT NULL    AS high_respondent,
                     overall_avg             AS avg_score,
-                    soft_delete
+                    soft_delete,
+                    num_individuals_in_response
              FROM respondents
              WHERE NOT soft_delete
                AND num_individuals_in_response = 2
@@ -235,7 +239,8 @@ SELECT
        question_text,
        grade_level_for_response,
        response_value,
-       response_text
+       response_text,
+       num_individuals_in_response
 FROM rank_questions
          JOIN
      duplicated_respondents USING (respondent_id)
